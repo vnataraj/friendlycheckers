@@ -1,23 +1,13 @@
 Possible Protocol:
 
-Needs:
-	Create match
-		random user
-		specific user
-	Perform move
-	
-	Check for opponents' moves
-	
-	Login
-	
-Enter into Queue: QueueMatch
-Request game w/other user: RequestMatch
-
-Sync matches with server: SyncMatches
-
-Perform move: Move
-
-Poll:	Poll
+List of message:
+----------------
+Enter into Queue: 			QueueMatch
+Request game w/other user: 	RequestMatch
+Sync matches with server: 	SyncMatches
+Perform move: 				Move
+Poll:						Poll
+Login:						Login
 
 	
 
