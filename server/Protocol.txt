@@ -1,0 +1,56 @@
+Possible Protocol:
+
+Needs:
+	Create match
+		random user
+		specific user
+	Perform move
+	
+	Check for opponents' moves
+	
+	Login
+	
+
+New Match:
+// Random Opponent
+QueueMatch
+<game_id>
+<user_id>
+	// Returns:
+		//success
+		Success
+		<success_message>
+		// failure
+		Failure
+		<failure_message>
+// example
+http://www.tutorcrossing.com/checkers/?message=QueueMatch&GameID=<game_id>&UserID=<user_id>
+//returns
+Success
+12th in queue
+// or
+Failure
+<some reason>
+
+
+RequestMatch
+<game_id>
+<user_id>
+<requestee_id>/<requestee_name>
+
+// example
+?message=RequestMatch&GameID=<game_id>&UserID=<user_id>&RequesteeID=<requestee_id>
+
+Perform Move:
+Move
+<match_id>
+<user_id>
+<move_data>
+
+?message=Move&MatchID=<match_id>&UserID=<user_id>&MoveData=<move_data>
+
+//returns
+Success
+Move saved.
+// or
+Failure
