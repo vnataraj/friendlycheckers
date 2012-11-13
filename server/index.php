@@ -7,62 +7,30 @@
  *	
  */
 
+ 	error_reporting(E_ALL);
+ 	ini_set('display_errors', 'On');
+ 	
 //	Require include of SQL functions
 	require_once './includes/SQL.inc.php';
+	
+//	Require include of Message class
+	require_once './includes/Message.inc.php';
+	require_once './includes/Login_Message.inc.php';
 
 //	Connect to SQL server
 	SQL_connect();
 	
-	$messageCodes = array(
-		'InvalidMessage'	=>	'666.1'
-	);
-	
-	
-	$valid_message = array(
-		'Login',
-		'Poll'
-	);
-	
-	if(isset($_REQUEST['message']) && in_array($_REQUEST['message'], $valid_message)) {
-		//echo $_REQUEST['message'] . '_Process';
-		$funcName = $_REQUEST['message'] . '_Process';
-		$funcName($_REQUEST);
+	if(isset($_REQUEST['message']) && class_exists($_REQUEST['message'] . '_Message')) {
+		$className = $_REQUEST['message'] . '_Message';
+		
+		$message = new $className($_REQUEST['message']);
+		$message->process($_REQUEST);
+		$message->respond();
 	}
 	else {
-		invalidMessage();
+		$message = new ErrorMessage('Unknown Error');
+		$message->respond();
 	}
 	
-	
-	function invalidMessage() {
-		global $messageCodes;
-		failureMessage($messageCodes['InvalidMessage'], 'Invalid/Malformed Message');
-	}
-	
-	function failureMessage($code, $data) {
-		genericMessage('Failure', $code, $data);
-	}
-	
-	function successMessage($code, $data) {
-		genericMessage('Success', $code, $data);
-	}
-	
-	function genericMessage($status, $code, $data) {
-		$response 	= 	'';
-		$response 	.=	$status;
-		$response	.=	"\n";
-		$response	.=	$code;
-		$response	.=	"\n";
-		$response	.=	$data;
-		echo $response;
-	
-	}
-	
-	function Poll_Process($data) {
-		$dataString = '';
-		foreach($data as $key => $value) {
-			$dataString .= $key . '=' . $value . '<br/>';
-		}
-		successMessage('42.1', $dataString);
-	}
 	
 ?>
