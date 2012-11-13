@@ -9,55 +9,95 @@ Perform move: 				Move
 Poll:						Poll
 Login:						Login
 
-	
+// Login
+Login {
+	UserID=<user_id>
+	Password=<password>
+}
 
-New Match:
-// Random Opponent
-QueueMatch
-<game_id>
-<user_id>
-	// Returns:
-		//success
-		Success
-		<success_message>
-		// failure
-		Failure
-		<failure_message>
-// example
-http://www.tutorcrossing.com/checkers/?message=QueueMatch&GameID=<game_id>&UserID=<user_id>
-//returns
-Success
-12th in queue
-// or
-Failure
-<some reason>
+// Add user to queue for game
+QueueMatch {
+	UserID=<user_id>
+	GameID=<game_id>
+}
 
+// Request a game with a user
+RequestMatch {
+	UserID=<user_id>
+	GameID=<game_id>
+	RequesteeName=<requestee_name>
+}
 
-RequestMatch
-<game_id>
-<user_id>
-<requestee_id>/<requestee_name>
+// Poll server for changes for all matches [of a certain game type (optional)]
+// as well as new games/requests from other members
+Poll {
+	UserID=<user_id>
+	[GameID=<game_id>]
+}
 
-// example
-?message=RequestMatch&GameID=<game_id>&UserID=<user_id>&RequesteeID=<requestee_id>
+// Send a move to the server
+Move {
+	UserID=<user_id>
+	MatchID=<match_id>
+	MoveNumber=<move_number>
+	Notation=<move_data>
+}
 
-Perform Move:
-Move
-<match_id>
-<user_id>
-<move_data>
-
-?message=Move&MatchID=<match_id>&UserID=<user_id>&MoveData=<move_data>
-
-//returns
-Success
-Move saved.
-// or
-Failure
+// Returns all move data for given matches to sync local data with server data.
+SyncMatches {
+	UserID=<user_id>
+	MatchIDs=<match_id>[,<match_id>...]
+}
 
 
-SyncMatches
-<user_id>
+Success Messages:
 
-?message=SyncMatches&UserID=<user_id>
+42.1 {
+	Successful Login
+}
 
+42.2 {
+	User added to queue
+}
+
+42.3 {
+	Game request sent
+}
+
+42.4 {
+	<poll_data>
+}
+
+42.5 {
+	Move recorded on server
+}
+
+42.6 {
+	<match_data>[,<match_data>...]
+}
+
+Failure Messages:
+
+666.1 {
+	Login failed, invalid username/password
+}
+
+666.2 {
+	Queue failure
+}
+
+666.3 {
+	Game request failed
+}
+
+666.4 {
+	Polling failed
+}
+
+666.5 {
+	Move failed to record
+}
+
+666.6 {
+	Failed to sync matches
+}
