@@ -1,0 +1,11 @@
+To get other's changes: 
+	git remote update
+	git pull
+
+To add a file to your next push: 
+	git add <file> 
+
+To push files to the server: 
+	git push <servername?>
+
+
