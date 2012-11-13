@@ -10,6 +10,16 @@ Needs:
 	
 	Login
 	
+Enter into Queue: QueueMatch
+Request game w/other user: RequestMatch
+
+Sync matches with server: SyncMatches
+
+Perform move: Move
+
+Poll:	Poll
+
+	
 
 New Match:
 // Random Opponent
@@ -54,3 +64,10 @@ Success
 Move saved.
 // or
 Failure
+
+
+SyncMatches
+<user_id>
+
+?message=SyncMatches&UserID=<user_id>
+
