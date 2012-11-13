@@ -1,0 +1,25 @@
+Api: what does Joe need from Caleb: 
+
+BoardChanges object: //to Vipul and Andrew
+	Coordinate [] removals
+	Coordinate [] additions
+
+Board object: //to Joe
+	list of piece objects on board
+
+piece object: 
+	coordinate
+	color
+	piece-type
+
+color enum: 
+	RED
+	BLACK
+
+piece-type enum: 
+	KING
+	REGULAR
+
+Coordinate object: //is in csharp library?
+	unsigned int x, 
+	unsigned int y
