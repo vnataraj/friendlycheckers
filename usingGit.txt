@@ -4,6 +4,7 @@ To get other's changes:
 
 To add a file to your next push: 
 	git add <file> 
+	git commit
 
 To push files to the server: 
 	git push <servername?>
