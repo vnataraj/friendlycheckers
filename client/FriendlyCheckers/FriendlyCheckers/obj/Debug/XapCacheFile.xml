@@ -1,8 +1,8 @@
-﻿<xapCache source="c:\users\hp\documents\visual studio 2010\Projects\PhoneApp1\PhoneApp1\Bin\Debug\PhoneApp1.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="11/14/2012 12:26:00 AM">
-  <file source="c:\users\hp\documents\visual studio 2010\Projects\PhoneApp1\PhoneApp1\Bin\Debug\WMAppManifest.xml" archivePath="WMAppManifest.xml" lastWriteTime="11/13/2012 5:11:00 PM" />
-  <file source="c:\users\hp\documents\visual studio 2010\Projects\PhoneApp1\PhoneApp1\Background.png" archivePath="Background.png" lastWriteTime="11/13/2012 5:09:22 PM" />
-  <file source="c:\users\hp\documents\visual studio 2010\Projects\PhoneApp1\PhoneApp1\ApplicationIcon.png" archivePath="ApplicationIcon.png" lastWriteTime="11/13/2012 5:09:22 PM" />
-  <file source="c:\users\hp\documents\visual studio 2010\Projects\PhoneApp1\PhoneApp1\obj\Debug\PhoneApp1.dll" archivePath="PhoneApp1.dll" lastWriteTime="11/14/2012 12:26:00 AM" />
-  <file source="c:\users\hp\documents\visual studio 2010\Projects\PhoneApp1\PhoneApp1\SplashScreenImage.jpg" archivePath="SplashScreenImage.jpg" lastWriteTime="11/13/2012 5:09:22 PM" />
-  <file source="c:\users\hp\documents\visual studio 2010\Projects\PhoneApp1\PhoneApp1\Bin\Debug\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="11/13/2012 5:11:00 PM" />
+﻿<xapCache source="c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\FriendlyCheckers.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="11/14/2012 12:40:13 AM">
+  <file source="c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\WMAppManifest.xml" archivePath="WMAppManifest.xml" lastWriteTime="11/14/2012 12:40:13 AM" />
+  <file source="c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Background.png" archivePath="Background.png" lastWriteTime="11/14/2012 12:38:53 AM" />
+  <file source="c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\ApplicationIcon.png" archivePath="ApplicationIcon.png" lastWriteTime="11/14/2012 12:38:53 AM" />
+  <file source="c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\obj\Debug\FriendlyCheckers.dll" archivePath="FriendlyCheckers.dll" lastWriteTime="11/14/2012 12:40:12 AM" />
+  <file source="c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\SplashScreenImage.jpg" archivePath="SplashScreenImage.jpg" lastWriteTime="11/14/2012 12:38:53 AM" />
+  <file source="c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="11/14/2012 12:40:13 AM" />
 </xapCache>
