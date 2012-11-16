@@ -15,7 +15,13 @@ namespace PhoneApp1
 {
     public partial class MainPage : PhoneApplicationPage
     {
-        Canvas mainCanvas;
+        public static Ellipse highlight = null;
+        public static Checker PIECE_SELECTED = null;
+        public static Color DarkRed;
+        public static Color DarkGrey;
+        public static Color Glaze; 
+
+        public static Canvas mainCanvas;
         Rectangle[,] spaces;
         Checker[,] pieces;
         int row_W = 8;
@@ -31,6 +37,31 @@ namespace PhoneApp1
             c.A = 150;
             Shader.Fill = new SolidColorBrush(c);
             ContentPanel.Children.Remove(Shader);
+
+            highlight = new Ellipse();
+            highlight.Width = 50;
+            highlight.Height = 50;
+            highlight.MouseLeftButtonUp += Glaze_Handler;
+
+            c = new Color();
+            c.R = c.G = c.B = 255;
+            c.A = 100;
+            highlight.Fill = new SolidColorBrush(c);
+
+            DarkRed = new Color();
+            DarkRed.R = 50;
+            DarkRed.G = 0;
+            DarkRed.B = 0;
+            DarkRed.A = 255;
+
+            DarkGrey = new Color();
+            DarkGrey.R = DarkGrey.G = DarkGrey.B = 20;
+            DarkGrey.A = 255;
+
+            Glaze = new Color();
+            Glaze.R = Glaze.G = Glaze.B = 255;
+            Glaze.A = 100;
+
             RemoveInGameStats();
             mainCanvas = new Canvas();
             mainCanvas.Width = w;
@@ -47,18 +78,6 @@ namespace PhoneApp1
         }
         private void createPieces()
         {
-            Color DarkRed = new Color();
-            DarkRed.R = 50;
-            DarkRed.G = 0;
-            DarkRed.B = 0;
-            DarkRed.A = 255;
-
-            Color DarkGrey = new Color();
-            DarkGrey.R = 20;
-            DarkGrey.G = 20;
-            DarkGrey.B = 20;
-            DarkGrey.A = 255;
-
             pieces = new Checker[8,8];
             int row = 0, col = 0;
             for (int k = 0; k < 24; k++)
@@ -74,28 +93,38 @@ namespace PhoneApp1
         }
         private void createBoard()
         {
-            Color DarkerRed = new Color();
-            DarkerRed.R = 180;
-            DarkerRed.G = 0;
-            DarkerRed.B = 0;
-            DarkerRed.A = 255;
+            Color Brown = new Color();
+            Brown.R = 120;
+            Brown.G = 40;
+            Brown.B = 10;
+            Brown.A = 255;
+
+            Color Sand = new Color();
+            Sand.R = 200;
+            Sand.G = 180;
+            Sand.B = 90;
+            Sand.A = 255;
+
             spaces = new Rectangle[row_W, row_W];
+            int size = 55;
             for (int k = 0; k < row_W; k++)
             {
                 for (int i = 0; i < row_W; i++)
                 {
                     spaces[k, i] = new Rectangle();
-                    spaces[k,i].MinWidth = 50;
-                    spaces[k,i].MinHeight = 50;
-                    spaces[k, i].Fill = new SolidColorBrush(((i + k) % 2 == 0) ? DarkerRed : Colors.Black);
-                    int lm = (k*50);
-                    int tm = (i*50) - 100;
-                    spaces[k,i].Margin = new Thickness(lm,tm,w-lm,h-tm);
-                    mainCanvas.Children.Add(spaces[k,i]);    
+                    spaces[k, i].MinWidth = size;
+                    spaces[k, i].MinHeight = size;
+                    spaces[k, i].Width = size;
+                    spaces[k, i].Height = size;
+                    spaces[k, i].MouseLeftButtonUp += Action;
+                    spaces[k, i].Fill = new SolidColorBrush(((i + k) % 2 == 0) ? Sand : Brown);
+                    int lm = (k * size) - 20;
+                    int tm = (i * size) - 115;
+                    spaces[k, i].Margin = new Thickness(lm, tm, w - lm, h - tm);
+                    mainCanvas.Children.Add(spaces[k, i]);
                 }
             }
         }
-
         private void ClearMenu()
         {
             ContentPanel.Children.Remove(singleplayer);
@@ -206,6 +235,31 @@ namespace PhoneApp1
             }
             createPieces();
         }
+        private void Action(object o, MouseButtonEventArgs e)
+        {
+            for (int k = 0; k < row_W; k++)
+            {
+                for (int i = 0; i < row_W; i++)
+                {
+                    if (spaces[k, i].GetHashCode().Equals(o.GetHashCode()))
+                    {
+                        //MessageBox.Show("You clicked ["+i+","+k+"]");
+                        Glaze_Handler(o, e);
+                        break;
+                    }
+                }
+            }
+        }
+        public static void Highlight(Thickness t)
+        {
+            mainCanvas.Children.Remove(highlight);
+            highlight.Margin = t; 
+            mainCanvas.Children.Add(highlight);
+        }
+        private void Glaze_Handler(object sender, MouseButtonEventArgs e)
+        {
+            mainCanvas.Children.Remove(highlight);
+        }
         public GameType getGameType()
         {
             return game_type;
@@ -213,17 +267,22 @@ namespace PhoneApp1
     }
     public class Checker
     {
-        Ellipse el1, el2;
-        int offset = -100;
+        Ellipse el1, el2, el3;
+        int offsetx = -111, offsety = 19;
+        int marginx = 55, marginy = 55;
         int x, y;
         Color color, bg;
+        private bool col;
+        private Thickness highlight;
         public Checker(int x, int y, Color color, Color bg)
         {
             el1 = new Ellipse();
             el2 = new Ellipse();
+            el3 = new Ellipse();
             this.x = x;
             this.y = y;
             this.color = color;
+            this.col = (color.Equals(MainPage.DarkGrey) ? false : true);
             this.bg = bg;
 
             el1.Width = 50;
@@ -231,16 +290,20 @@ namespace PhoneApp1
             el1.Height = 50;
             el1.MinHeight = 50;
             el1.Fill = new SolidColorBrush(color);
-            el1.Margin = new Thickness(y * 50 - 2, x * 50 - 2 + offset,
-                400 - x * 50 + 2, 400 - y * 50 + 2 - offset);
-
+            el1.Margin = new Thickness(y * marginx - offsety, x * marginy - 2 + offsetx,
+                400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
             el2.Width = 50;
             el2.MinWidth = 50;
             el2.Height = 50;
             el2.MinHeight = 50;
-            el2.Margin = new Thickness(y * 50, x * 50 + offset,
-                400 - x * 50, 400 - y * 50 - offset);
+            el2.Margin = new Thickness(y * marginx - offsety + 2, x * marginy + offsetx,
+                400 - x * marginx + offsety - 2, 400 - y * marginy - offsetx);
             el2.Fill = new SolidColorBrush(bg);
+
+            highlight = new Thickness(y * marginx - offsety, x * marginy - 2 + offsetx,
+              400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
+            el1.MouseLeftButtonUp += ellipse_MouseUp;
+            el2.MouseLeftButtonUp += ellipse_MouseUp;
         }
         public Ellipse getEl1() { return el1; }
         public Ellipse getEl2() { return el2; }
@@ -248,5 +311,22 @@ namespace PhoneApp1
         public int getY() { return this.y; }
         public Color getColor() { return this.color; }
         public Color getBG() { return this.bg; }
+        
+        private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            MainPage.Highlight(highlight);
+           /* if (MainPage.PIECE_SELECTED == null)
+            {
+                MainPage.PIECE_SELECTED = this;
+                MainPage.Highlight(highlight);
+            }
+            else if(MainPage.PIECE_SELECTED.Equals(this))
+            {
+                el1.Fill = new SolidColorBrush(col ? Colors.Red : MainPage.DarkGrey);
+                el2.Fill = new SolidColorBrush(col ? MainPage.DarkRed : Colors.Black);
+                MainPage.PIECE_SELECTED = null;
+            }*/
+           // MessageBox.Show("You Clicked ["+x+", "+y+"]");
+        }
     }
 }

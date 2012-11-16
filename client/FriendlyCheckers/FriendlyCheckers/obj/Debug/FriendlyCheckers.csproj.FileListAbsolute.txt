@@ -11,3 +11,8 @@ c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheck
 c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\obj\Debug\FriendlyCheckers.dll
 c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\obj\Debug\FriendlyCheckers.pdb
 c:\users\hp\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\obj\Debug\XapCacheFile.xml
+C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.dll
+C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.dll
+C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.pdb
+C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.xml
+C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.xml
