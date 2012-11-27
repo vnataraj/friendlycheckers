@@ -9,6 +9,7 @@ Perform move: 				Move
 Poll:						Poll
 Login:						Login
 
+<server><path>?message=<message>[&
 // Login
 Login {
 	UserID=<user_id>
@@ -30,9 +31,13 @@ RequestMatch {
 
 // Poll server for changes for all matches [of a certain game type (optional)]
 // as well as new games/requests from other members
-Poll {
+PollRequest {
 	UserID=<user_id>
 	[GameID=<game_id>]
+}
+
+PollMatch {
+
 }
 
 // Send a move to the server
@@ -44,9 +49,9 @@ Move {
 }
 
 // Returns all move data for given matches to sync local data with server data.
-SyncMatches {
+SyncMatch {
 	UserID=<user_id>
-	MatchIDs=<match_id>[,<match_id>...]
+	MatchID=<match_id>
 }
 
 
