@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace FriendlyCheckers
 {
-    public class NetLogic
+    public class NetworkLogic
     {
         /*
          * @vnataraj, CS252
@@ -25,16 +25,16 @@ namespace FriendlyCheckers
          */
         private List removals; //check with caleb on object types!!
         private List additions;
+        private int moveNumber;
         private string returncode = "\0";
         private int gameID;
         private int matchID;
-        private string username;
-        private Thread poller;
-        private B 
+        private string username; 
         
-        public NetLogic(Move move, UserGame game){   // constructor for NetworkLogic object, querys server for data
+        public NetworkLogic(Move move, UserGame game){   // constructor for NetworkLogic object, querys server for data
             this.additions = move.getAdditions();
             this.removals = move.getRemovals();
+            this.moveNumber=move.getMoveNumber();
             this.gameID = game.getGameID();
             this.matchID = game.getMatchID();
             this.username = game.getUsername();
@@ -91,17 +91,9 @@ namespace FriendlyCheckers
             return logic;
             // returns new GameLogic object based on server's stored logic
         }
-        private void pollServer()
+        public void pollServer() // called by Caleb's GameLogic to poll server, threads not necessary!
         {
 
-        }
-        private void instructThread()
-        {
-            bool b = true;
-            while (b)
-            {
-                pollServer();
-            }
         }
     }
 }
