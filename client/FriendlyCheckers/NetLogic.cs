@@ -8,12 +8,24 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
-using System.Threading;
 
-namespace FriendlyCheckers
-{
+namespace FriendlyCheckers{
+    [Serializable()]
+    public class YoureFuckedException : System.Exception
+    {
+        public YoureFuckedException() : base() { }
+        public YoureFuckedException(string message) : base(message) { }
+        public YoureFuckedException(string message, System.Exception inner) : base(message, inner) { }
+        // A constructor is needed for serialization when an 
+        // exception propagates from a remoting server to the client.  
+        protected YoureFuckedException(System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context) { }
+    }
+
+
     public class NetworkLogic
     {
+
         /*
          * @vnataraj, CS252
          * ideas: to create a Network Logic object that can be called by any of the other objects(aka Caleb's GameLogic object and Joe's GUI)
@@ -29,7 +41,12 @@ namespace FriendlyCheckers
         private string returncode = "\0";
         private int gameID;
         private int matchID;
-        private string username; 
+        private string username;
+        private string opponentname;
+        private string server="http://localhost:8000";
+        private string path = "/root";
+        private static string loginSuccess = "42.1";
+        private static string queueMatchSuccess = "42.2";
         
         public NetworkLogic(Move move, UserGame game){   // constructor for NetworkLogic object, querys server for data
             this.additions = move.getAdditions();
@@ -38,6 +55,7 @@ namespace FriendlyCheckers
             this.gameID = game.getGameID();
             this.matchID = game.getMatchID();
             this.username = game.getUsername();
+            this.opponentname= game.getOpponentname();
             if (queryServer(move, position, win).Equals("42.01"))
             {
                 writeToServer(move, position, win);
@@ -59,41 +77,115 @@ namespace FriendlyCheckers
             // writes information to server after querying when server was last modified
             //error codes still apply(42.xx for success, 666.xx for failure)
         }
-        public int checkGameID(string username)
+        public bool login(string username, string password)
         {
-            //checks gameID with current gameID stored on server
-            return gameID;
+            string serverpath = server + path + "?message=Login[&" + "Username=" + username + "&Password=" + password;
+            string responseFromServer;
+            Uri address;
+            WebClient webclient;
+            WebRequest request;
+            HttpWebResponse response;
+            Stream dataStream;
+            StreamReader reader;
+            try
+            {
+                address= new Uri(serverpath);
+                webclient = new WebClient();
+                request=webclient.GetWebRequest(address);
+                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(server + path + "?message=Login[&" + "Username=" + username + "&Password=" + password);
+                response = (HttpWebResponse)request.GetResponseStream();
+                dataStream = response.GetResponseStream();
+                reader = new StreamReader(dataStream);
+                responseFromServer = reader.ReadToEnd();
+                reader.Close();
+                dataStream.Close();
+                response.Close();
+                if (responseFromServer.Equals(loginSuccess))
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                //...
+            }
+            YoureFuckedException fucked = new YoureFuckedException("Get a new phone!");
+            throw fucked;
+            return false;
         }
-        public int checkMatchID(string username)
+        public bool queueMatch(string username, int gameID)
         {
-            //checks matchID with current matchID stored on server
-            return matchID;
+            string serverpath = server + path + "?message=QueueMatch&" + "UserID=" + username + "&GameID=" + gameID.ToString;
+            string responseFromServer;
+            Uri address;
+            WebClient webclient;
+            WebRequest request;
+            HttpWebResponse response;
+            Stream dataStream;
+            StreamReader reader;
+            try
+            {
+                address = new Uri(serverpath);
+                webclient = new WebClient();
+                request = webclient.GetWebRequest(address);
+                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(server + path + "?message=Login[&" + "Username=" + username + "&Password=" + password);
+                response = (HttpWebResponse)request.GetResponseStream();
+                dataStream = response.GetResponseStream();
+                reader = new StreamReader(dataStream);
+                responseFromServer = reader.ReadToEnd();
+                reader.Close();
+                dataStream.Close();
+                response.Close();
+                if (responseFromServer.Equals(queueMatchSuccess))
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                //...
+            }
+            YoureFuckedException fucked = new YoureFuckedException("Get a new phone!");
+            throw fucked;
+            return false;
         }
-        /*public string setGameID(string username, int gameID)
+        public void requestMatch(string username, int gameID, string opponentname)
         {
-            //sets game ID on server, returns error code on fail and success code on success
-            return returncode;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)Webrequest.Create(server + path + "?message=RequestMatch&" + "Username=" + username + "&Password=" + password);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponseStream();
+            }
+            catch (Exception e)
+            {
+                //...
+            }
         }
-        public string setMatchID(string username, int matchID)
+        public void pollRequest(string username) // called by Caleb's GameLogic to poll server, threads not necessary!
         {
-            // sets matchID to server, returns error code on fail and success code on success
-            return returncode;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)Webrequest.Create(server + path + "?message=PollRequest&" + "Username=" + username);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponseStream();
+            }
+            catch (Exception e)
+            {
+                //...
+            }
         }
-         */
-        public string callOnStart(string username)
+        public void pollMatch(string username, int gameID)
         {
-            //not too sure about the necessity of this function
-            // querys server for all start data? polls every x seconds
-            return returncode;
-        }
-        public GameLogic updateLogic(GameLogic logic)
-        {
-            return logic;
-            // returns new GameLogic object based on server's stored logic
-        }
-        public void pollServer() // called by Caleb's GameLogic to poll server, threads not necessary!
-        {
-
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)Webrequest.Create(server + path + "?message=PollMatch&" + "Username=" + username + "&GameID=" + gameID.ToString);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponseStream();
+            }
+            catch (Exception e)
+            {
+                //...
+            }
         }
     }
 }
