@@ -17,10 +17,11 @@ namespace FriendlyCheckers
     {
         public static Color DarkRed;
         public static Color DarkGrey;
-        public static Color Glaze;
+        public static Color HighlightRed;
+        public static Color HighlightGrey;
+        public static Checker HIGHLIGHTED_PIECE;
         public static int checkerX, checkerY;
         private static Canvas mainCanvas;
-        private static Ellipse highlight = null;
         private GameLogic logic;
         private Rectangle[,] spaces;
         private Checker[,] pieces;
@@ -35,21 +36,23 @@ namespace FriendlyCheckers
         {
             InitializeComponent();
             tapX = checkerX = tapY = checkerY = -1;
-            Color c = new Color();
-            c.R = c.G = c.B = 0;
-            c.A = 150;
-            Shader.Fill = new SolidColorBrush(c);
+            Color shade = new Color();
+            shade.R = shade.G = shade.B = 0;
+            shade.A = 150;
+            Shader.Fill = new SolidColorBrush(shade);
             ContentPanel.Children.Remove(Shader);
 
-            highlight = new Ellipse();
-            highlight.Width = 50;
-            highlight.Height = 50;
-            highlight.MouseLeftButtonUp += Glaze_Handler;
+            HighlightRed = new Color();
+            HighlightRed.R = 255;
+            HighlightRed.G = 100;
+            HighlightRed.B = 100;
+            HighlightRed.A = 255;
 
-            c = new Color();
-            c.R = c.G = c.B = 255;
-            c.A = 150;
-            highlight.Fill = new SolidColorBrush(c);
+            HighlightGrey = new Color();
+            HighlightGrey.R = 100;
+            HighlightGrey.G = 100;
+            HighlightGrey.B = 100;
+            HighlightGrey.A = 255;
 
             DarkRed = new Color();
             DarkRed.R = 50;
@@ -60,10 +63,6 @@ namespace FriendlyCheckers
             DarkGrey = new Color();
             DarkGrey.R = DarkGrey.G = DarkGrey.B = 20;
             DarkGrey.A = 255;
-
-            Glaze = new Color();
-            Glaze.R = Glaze.G = Glaze.B = 255;
-            Glaze.A = 100;
 
             RemoveInGameStats();
             mainCanvas = new Canvas();
@@ -86,13 +85,11 @@ namespace FriendlyCheckers
                 pieces[col,row] = new Checker(col, row, (k < 12) ? Colors.Red : DarkGrey,
                                                 (k < 12) ? DarkRed : Colors.Black);
                 Vector vect = new Vector(row, col);
-                //MessageBox.Show(col + ", " + row);
                 Piece piece = new Piece((k < 12) ? PieceColor.RED: PieceColor.BLACK,vect,PieceType.REGULAR);
                 logic.addPiece(piece);
                 mainCanvas.Children.Add(pieces[col,row].getEl2());
                 mainCanvas.Children.Add(pieces[col,row].getEl1());
             }
-            MessageBox.Show(logic.getBoardText());
         }
         private void createBoard()
         {
@@ -134,8 +131,6 @@ namespace FriendlyCheckers
             ContentPanel.Children.Remove(multiplayer_local);
             ContentPanel.Children.Remove(multiplayer_online);
             LayoutRoot.Children.Remove(TitlePanel);
-            if (highlight != null)
-                mainCanvas.Children.Remove(highlight);
         }
         private void RemoveInGameStats()
         {
@@ -212,8 +207,6 @@ namespace FriendlyCheckers
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             RemoveInGameStats();
-            if(highlight!=null)
-                mainCanvas.Children.Remove(highlight);
             LayoutRoot.Children.Add(TitlePanel);
             ContentPanel.Children.Add(singleplayer);
             ContentPanel.Children.Add(multiplayer_local);
@@ -236,35 +229,23 @@ namespace FriendlyCheckers
         private void Action(object o, MouseButtonEventArgs e)
         {
             if (game_type == GameType.OUT_OF_GAME || checkerX==-1 || checkerY==-1) return;
+            HIGHLIGHTED_PIECE.toggleHighlight();
             for (int k = 0; k < row_W; k++)
             {
                 for (int i = 0; i < row_W; i++)
                 {
                     if (spaces[k, i].GetHashCode().Equals(o.GetHashCode()))
                     {
-                       // MessageBox.Show("You clicked ["+i+","+k+"]");
                         Move m;
                         try
                         {
                             m = logic.makeMove(checkerY, checkerX, i, k);
                             handleMove(m);
+                            //MessageBox.Show("checkerX: " + checkerX + "  checkerY: " + checkerY );
                         }
-                        catch (PieceWrongColorException)
-                        {
-                            mainCanvas.Children.Remove(highlight);
-                        }
-                        catch (InvalidMoveException)
-                        {
-                            mainCanvas.Children.Remove(highlight);
-                            MessageBox.Show("Cannot move there.");
-                        }
-                        catch (GameLogicException ex)
-                        {
-                            MessageBox.Show(ex.StackTrace);
-                            MessageBox.Show("((" + checkerY + ", " + checkerX + ", " + i + ", " + k + "))");
-                            //MessageBox.Show("Something went wrong.");
-                        }
-                        Glaze_Handler(o, e);
+                        catch (PieceWrongColorException){ MessageBox.Show("You cannot move your opponent's pieces!"); }
+                        catch (InvalidMoveException){MessageBox.Show("Invalid move.");}
+                        catch (GameLogicException) {MessageBox.Show("A logic exception has occurred.");}
                         break;
                     }
                 }
@@ -279,16 +260,16 @@ namespace FriendlyCheckers
             foreach (Piece p in removed)
             {
                 Vector co = p.getCoordinates();
-                delete(co.getY(),co.getX());
+                delete(co.getX(),co.getY());
             }
 
             foreach (Piece p in added)
             {
                 Vector co = p.getCoordinates();
 
-                int col = co.getY();
-                int row = co.getX();
-                Checker c = new Checker(col, row,p.getColor() == PieceColor.BLACK ? Colors.DarkGray : Colors.Red,
+                int col = co.getX();
+                int row = co.getY();
+                Checker c = new Checker(col, row,p.getColor() == PieceColor.BLACK ? DarkGrey : Colors.Red,
                                                  p.getColor() == PieceColor.BLACK ? Colors.Black : DarkRed);
                 pieces[col, row] = c;
                 mainCanvas.Children.Add(pieces[col, row].getEl2());
@@ -304,18 +285,13 @@ namespace FriendlyCheckers
 
             return temp;
         }
-        public static void Highlight(Thickness t, int x, int y)
+        public static void setPiece(Checker c, int x, int y)
         {
-            if (game_type == GameType.OUT_OF_GAME) return;
-            mainCanvas.Children.Remove(highlight);
-            highlight.Margin = t;
+            if (checkerX != -1 && checkerY != -1)
+                HIGHLIGHTED_PIECE.toggleHighlight();
             checkerX = x;
             checkerY = y;
-            mainCanvas.Children.Add(highlight);
-        }
-        private void Glaze_Handler(object sender, MouseButtonEventArgs e)
-        {
-            mainCanvas.Children.Remove(highlight);
+            HIGHLIGHTED_PIECE = c;
         }
         public GameType getGameType()
         {
@@ -324,23 +300,21 @@ namespace FriendlyCheckers
     }
     public class Checker
     {
-        Ellipse el1, el2, el3;
-        int offsetx = -111, offsety = 19;
-        int marginx = 55, marginy = 55;
-        int x, y;
-        Color color, bg;
-        private bool col;
-        private Thickness highlight;
+        private Ellipse el1, el2;
+        private int offsetx = -111, offsety = 19, marginx = 55, marginy = 55, x, y;
+        private Color color, bg, high;
+        private bool col, lit;
         public Checker(int x, int y, Color color, Color bg)
         {
             el1 = new Ellipse();
             el2 = new Ellipse();
-            el3 = new Ellipse();
             this.x = x;
             this.y = y;
+            this.lit = false;
             this.color = color;
             this.col = (color.Equals(MainPage.DarkGrey) ? false : true);
             this.bg = bg;
+            this.high = !col ? MainPage.HighlightGrey : MainPage.HighlightRed;
 
             el1.Width = 50;
             el1.MinWidth = 50;
@@ -356,9 +330,6 @@ namespace FriendlyCheckers
             el2.Margin = new Thickness(x * marginx - offsety + 2, y * marginy + offsetx,
                 400 - x * marginx + offsety - 2, 400 - y * marginy - offsetx);
             el2.Fill = new SolidColorBrush(bg);
-
-            highlight = new Thickness(x * marginx - offsety, y * marginy - 2 + offsetx,
-              400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
             el1.MouseLeftButtonUp += ellipse_MouseUp;
             el2.MouseLeftButtonUp += ellipse_MouseUp;
         }
@@ -368,12 +339,19 @@ namespace FriendlyCheckers
         public int getY() { return this.y; }
         public Color getColor() { return this.color; }
         public Color getBG() { return this.bg; }
-        
+        public void toggleHighlight()
+        {
+            if (!lit)
+                el1.Fill = new SolidColorBrush(high);
+            else
+                el1.Fill = new SolidColorBrush(color);
+            lit = !lit;
+        }
         private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
-            MainPage.Highlight(highlight,x,y);
-           // MessageBox.Show("You Clicked ["+y+", "+x+"]");
+            toggleHighlight();
+            MainPage.setPiece(this, x, y);
         }
     }
 }
