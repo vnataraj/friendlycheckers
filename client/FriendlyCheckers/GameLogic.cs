@@ -303,7 +303,7 @@ namespace FriendlyCheckers {
         public string getBoardText() {
             string t = "";
             for (int y = 0; y < board.getHeight(); y++) {
-                for (int x; x < board.getWidth(); x++) {
+                for (int x = 0; x < board.getWidth(); x++) {
                     Piece p = board.getCellContents(y, x);
                     if (p == null) {
                         t += "n";
