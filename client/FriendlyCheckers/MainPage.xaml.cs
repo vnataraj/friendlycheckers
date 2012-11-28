@@ -11,27 +11,31 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using Microsoft.Phone.Controls;
 
-namespace PhoneApp1
+namespace FriendlyCheckers
 {
     public partial class MainPage : PhoneApplicationPage
     {
-        public static Ellipse highlight = null;
-        public static Checker PIECE_SELECTED = null;
         public static Color DarkRed;
         public static Color DarkGrey;
-        public static Color Glaze; 
+        public static Color Glaze;
+        public static int checkerX, checkerY;
+        private static Canvas mainCanvas;
+        private static Ellipse highlight = null;
+        private GameLogic logic;
+        private Rectangle[,] spaces;
+        private Checker[,] pieces;
+        private int row_W = 8;
+        private int w = 400, h = 400;
+        private int tapX, tapY;
 
-        public static Canvas mainCanvas;
-        Rectangle[,] spaces;
-        Checker[,] pieces;
-        int row_W = 8;
-        int w = 400, h = 400;
         public enum GameType { OUT_OF_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
-        private GameType game_type = GameType.OUT_OF_GAME;
+        public static GameType game_type = GameType.OUT_OF_GAME;
 
         public MainPage()
         {
             InitializeComponent();
+            tapX = checkerX = tapY = checkerY = -1;
+            logic = new GameLogic(row_W, row_W);
             Color c = new Color();
             c.R = c.G = c.B = 0;
             c.A = 150;
@@ -69,11 +73,6 @@ namespace PhoneApp1
             ContentPanel.Children.Add(mainCanvas);
             createBoard();
             createPieces();
-
-            move(2, 0, 3, 1);
-            move(2, 2, 3, 3);
-            move(5, 1, 4, 0);
-
             scramble();
         }
         private void createPieces()
@@ -131,6 +130,8 @@ namespace PhoneApp1
             ContentPanel.Children.Remove(multiplayer_local);
             ContentPanel.Children.Remove(multiplayer_online);
             LayoutRoot.Children.Remove(TitlePanel);
+            if (highlight != null)
+                mainCanvas.Children.Remove(highlight);
         }
         private void RemoveInGameStats()
         {
@@ -148,7 +149,7 @@ namespace PhoneApp1
             HiddenPanel.Children.Add(Moves);
             ContentPanel.Children.Add(quit);
         }
-        public void scramble()
+        private void scramble()
         {
             for (int k = 0; k < 1000; k++)
             {
@@ -160,7 +161,7 @@ namespace PhoneApp1
                 move(row1, col1, row2, col2);
             }
         }
-        public Checker delete(int x, int y)
+        private Checker delete(int x, int y)
         {
             Checker temp = pieces[x, y];
             mainCanvas.Children.Remove(temp.getEl2());
@@ -177,7 +178,7 @@ namespace PhoneApp1
 
             return true;
         }
-        public void move(int x1, int y1, int x2, int y2)
+        private void move(int x1, int y1, int x2, int y2)
         {
             if (!validMove(x1, y1, x2, y2)) return;
 
@@ -187,7 +188,7 @@ namespace PhoneApp1
             mainCanvas.Children.Add(pieces[x2, y2].getEl2());
             mainCanvas.Children.Add(pieces[x2, y2].getEl1());
         }
-        public void SinglePlayer_Setup(object sender, RoutedEventArgs e)
+        private void SinglePlayer_Setup(object sender, RoutedEventArgs e)
         {
             ClearMenu();
             Versus.Text = "Player 1 vs. Computer";
@@ -195,7 +196,7 @@ namespace PhoneApp1
             game_type = GameType.SINGLE_PLAYER;
             resetBoard();
         }
-        public void Local_Multi_Setup(object sender, RoutedEventArgs e)
+        private void Local_Multi_Setup(object sender, RoutedEventArgs e)
         {
             ClearMenu();
             Versus.Text = "Player 1 vs. Player 2";
@@ -203,7 +204,7 @@ namespace PhoneApp1
             game_type = GameType.LOCAL_MULTI;
             resetBoard();
         }
-        public void Online_Multi_Setup(object sender, RoutedEventArgs e)
+        private void Online_Multi_Setup(object sender, RoutedEventArgs e)
         {
             ClearMenu();
             Versus.Text = "Player 1 vs. [Searching...]";
@@ -213,9 +214,11 @@ namespace PhoneApp1
             ContentPanel.Children.Add(Shader);
             ContentPanel.Children.Add(Search);
         }
-        public void Menu_Setup(object sender, RoutedEventArgs e)
+        private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             RemoveInGameStats();
+            if(highlight!=null)
+                mainCanvas.Children.Remove(highlight);
             LayoutRoot.Children.Add(TitlePanel);
             ContentPanel.Children.Add(singleplayer);
             ContentPanel.Children.Add(multiplayer_local);
@@ -223,7 +226,7 @@ namespace PhoneApp1
             game_type = GameType.OUT_OF_GAME;
             scramble();
         }
-        public void resetBoard()
+        private void resetBoard()
         {
             for (int k = 0; k < row_W; k++)
             {
@@ -237,23 +240,29 @@ namespace PhoneApp1
         }
         private void Action(object o, MouseButtonEventArgs e)
         {
+            if (game_type == GameType.OUT_OF_GAME || checkerX==-1 || checkerY==-1) return;
             for (int k = 0; k < row_W; k++)
             {
                 for (int i = 0; i < row_W; i++)
                 {
                     if (spaces[k, i].GetHashCode().Equals(o.GetHashCode()))
                     {
-                        MessageBox.Show("You clicked ["+i+","+k+"]");
+                       // MessageBox.Show("You clicked ["+i+","+k+"]");
+
                         Glaze_Handler(o, e);
                         break;
                     }
                 }
             }
+            checkerX = checkerY = -1;
         }
-        public static void Highlight(Thickness t)
+        public static void Highlight(Thickness t, int x, int y)
         {
+            if (game_type == GameType.OUT_OF_GAME) return;
             mainCanvas.Children.Remove(highlight);
-            highlight.Margin = t; 
+            highlight.Margin = t;
+            checkerX = x;
+            checkerY = y;
             mainCanvas.Children.Add(highlight);
         }
         private void Glaze_Handler(object sender, MouseButtonEventArgs e)
@@ -314,19 +323,9 @@ namespace PhoneApp1
         
         private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            MainPage.Highlight(highlight);
-           /* if (MainPage.PIECE_SELECTED == null)
-            {
-                MainPage.PIECE_SELECTED = this;
-                MainPage.Highlight(highlight);
-            }
-            else if(MainPage.PIECE_SELECTED.Equals(this))
-            {
-                el1.Fill = new SolidColorBrush(col ? Colors.Red : MainPage.DarkGrey);
-                el2.Fill = new SolidColorBrush(col ? MainPage.DarkRed : Colors.Black);
-                MainPage.PIECE_SELECTED = null;
-            }*/
-          //  MessageBox.Show("You Clicked ["+y+", "+x+"]");
+            if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
+            MainPage.Highlight(highlight,y,x);
+            MessageBox.Show("You Clicked ["+y+", "+x+"]");
         }
     }
 }
