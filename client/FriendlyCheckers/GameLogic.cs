@@ -12,15 +12,15 @@ using System.Collections.Generic;
 
 namespace FriendlyCheckers {
 
-
-    public class CellAlreadyFilledException : System.Exception {}
-    public class CellEmptyException : System.Exception {}
-    public class CellFullException : System.Exception {}
-    public class PieceWrongColorException : System.Exception {}
-    public class UnreachableCodeException : System.Exception {}
-    public class CellOutOfBoundsException : System.Exception {} 
-    public class InvalidMoveException : System.Exception {}
-    public class BadMoveNumberException : System.Exception {}
+    public class GameLogicException : System.Exception { }
+    public class CellAlreadyFilledException : GameLogicException { }
+    public class CellEmptyException : GameLogicException { }
+    public class CellFullException : GameLogicException { }
+    public class PieceWrongColorException : GameLogicException { }
+    public class UnreachableCodeException : GameLogicException { }
+    public class CellOutOfBoundsException : GameLogicException { }
+    public class InvalidMoveException : GameLogicException { }
+    public class BadMoveNumberException : GameLogicException { }
 
     public enum PieceColor {RED, BLACK};
     public enum PieceType {REGULAR, KING};
