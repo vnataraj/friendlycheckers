@@ -303,7 +303,8 @@ namespace FriendlyCheckers {
         }
 
         public bool isSelectable(int y, int x) {
-            return true; // fix this
+            Piece p = board.getCellContents(y, x); 
+            return p.getColor() == this.whoseMove(); // fix this
         }
 
         public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
