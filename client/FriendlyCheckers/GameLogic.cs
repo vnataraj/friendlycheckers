@@ -236,7 +236,6 @@ namespace FriendlyCheckers {
 
     public class GameLogic {
         Board board; 
-        PieceColor whoseTurn;
         int moveNumber;
 
         static Vector [] kingMoves = new Vector[4]{new Vector(1,1), new Vector(1,-1), new Vector(-1,-1), new Vector(-1,1)}; // kings move anywhere
@@ -307,8 +306,8 @@ namespace FriendlyCheckers {
             return true; // fix this
         }
 
-        public Move makeMove(PieceColor player, int yStart, int xStart, int yEnd, int xEnd) {
-            Move myMove = getMove(player, yStart, xStart, yEnd, xEnd);
+        public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
+            Move myMove = getMove(yStart, xStart, yEnd, xEnd);
             doMove(myMove);
             return myMove;
         }
@@ -341,7 +340,15 @@ namespace FriendlyCheckers {
             }
         }
 
-        private Move getMove(PieceColor player, int yStart, int xStart, int yEnd, int xEnd){
+        public PieceColor whoseMove() {
+            if (moveNumber % 2 == 1) {
+                return PieceColor.BLACK;
+            } else {
+                return PieceColor.RED;
+            }
+        }
+
+        private Move getMove(int yStart, int xStart, int yEnd, int xEnd){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
 
@@ -355,7 +362,7 @@ namespace FriendlyCheckers {
             if(end != null) { 
                 throw new CellFullException();
             }
-            if(start.getColor() != player){ 
+            if(start.getColor() != whoseMove()){ 
                 throw new PieceWrongColorException(); 
             }
 
