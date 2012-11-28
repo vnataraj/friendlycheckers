@@ -294,6 +294,10 @@ namespace FriendlyCheckers {
             moveNumber = 0;
         }
 
+        public void addPiece(Piece p){ 
+            board.addPieceToCell(p); 
+        }
+
         public bool pollForUpdates(){
             return true; 
             //stub
