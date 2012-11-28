@@ -17,6 +17,10 @@ namespace FriendlyCheckers {
     public class CellEmptyException : System.Exception {}
     public class CellFullException : System.Exception {}
     public class PieceWrongColorException : System.Exception {}
+    public class UnreachableCodeException : System.Exception {}
+    public class CellOutOfBoundsException : System.Exception {} 
+    public class InvalidMoveException : System.Exception {}
+    public class BadMoveNumberException : System.Exception {}
 
     public enum PieceColor {RED, BLACK};
     public enum PieceType {REGULAR, KING};
@@ -50,10 +54,10 @@ namespace FriendlyCheckers {
 
     public class Move { // this is the api to give data to networking (and maybe GUI)
         int moveNumber;
-        List<Vector> removals;
-        List<Vector> additions;
+        List<Piece> removals;
+        List<Piece> additions;
         
-        public Move(int moveNumber, List<Vector> removals, List<Vector> additions) {
+        public Move(int moveNumber, List<Piece> removals, List<Piece> additions) {
             this.moveNumber = moveNumber;
             this.removals = removals;
             this.additions = additions;
@@ -62,18 +66,14 @@ namespace FriendlyCheckers {
             return moveNumber;
         }
 
-        public List<Vector> getRemovals(){ //does a deep copy of removals
-            List<Vector> removalsCopy = new List<Vector>(); 
-            foreach(Vector v in this.removals) {
-                removalsCopy.Add(new Vector(v)); 
-            }
-            return removalsCopy;
+        public List<Piece> getRemovals(){
+            return removals;
         }
 
-        public List<Vector> getAdditions() { //does a deep copy of additions
-            List<Vector> additionsCopy = new List<Vector>(); 
-            foreach (Vector v in this.additions) {
-                additionsCopy.Add(new Vector(v));
+        public List<Piece> getAdditions() { //does a deep copy of additions
+            List<Piece> additionsCopy = new List<Piece>(); 
+            foreach (Piece v in this.additions) {
+                additionsCopy.Add(new Piece(v));
             }
             return additionsCopy;
         }
@@ -106,8 +106,11 @@ namespace FriendlyCheckers {
         }
 
         public Vector add(Vector move) {
-            return new Vector(this.x + move.x, 
-                this.y + move.y);
+            return new Vector(this.y + move.y, 
+                this.x + move.x);
+        }
+        public Vector divideVector(int divisor) {
+            return new Vector(this.getY() / divisor, this.getX() / divisor);
         }
 
         public override bool Equals(Object obj) {
@@ -123,7 +126,7 @@ namespace FriendlyCheckers {
 
 
 
-    public class Piece {
+    public class Piece { // Piece cannot be changed after created; only copied or read
         PieceColor color;
         Vector coordinates;
         PieceType type;
@@ -138,6 +141,11 @@ namespace FriendlyCheckers {
             this.coordinates = copyable.coordinates;
             this.type = copyable.type;
         }
+
+        public Piece newLocation(Vector loc){ 
+            return new Piece(this.color, loc, this.type);
+        }
+
         public PieceType getType(){ 
             return type; 
         }
@@ -190,7 +198,7 @@ namespace FriendlyCheckers {
 
 
     public class Board {
-        List<Piece> pieces;
+        //List<Piece> pieces;
         Cell[,] grid;
         int height;
         int width;
@@ -205,18 +213,24 @@ namespace FriendlyCheckers {
             this.height = height;
             this.width = width;
         }
-
+        public Piece getCellContents(Vector v) {
+            return getCellContents(v.getY(), v.getX());
+        }
         public Piece getCellContents(int y, int x) {
             if (!(x < width) || !(y < height)) {
-                throw new Exception();
+                throw new CellOutOfBoundsException();
             }
             return grid[y,x].getPiece(); 
         }
 
-        public void addPieceToCell(int y, int x, Piece piece) {
-            Piece newPiece = new Piece(piece);
-            grid[y, x].addPiece(newPiece);
-            pieces.Add(piece);
+        public void addPieceToCell(Piece piece) {
+            grid[piece.getCoordinates().getY(), piece.getCoordinates().getX()].addPiece(piece);
+            //pieces.Add(piece);
+        }
+
+        public void removePieceFromCell(Piece piece) {
+            grid[piece.getCoordinates().getY(), piece.getCoordinates().getX()].removePiece();
+            //pieces.Add(piece);
         }
     }
 
@@ -238,13 +252,41 @@ namespace FriendlyCheckers {
                 return PieceColor.RED; 
             } else if(color == PieceColor.RED) { 
                 return PieceColor.BLACK; 
-            } else { 
-                throw new Exception("what else could it be?"); 
+            } else {
+                throw new UnreachableCodeException(); 
+            }
+        }
+
+        public static Vector[] getPossibleJumps(PieceColor color, PieceType type) {
+            if (type == PieceType.KING) {
+                return kingJumps;
+            } else if (type == PieceType.REGULAR) {
+                if (color == PieceColor.BLACK) {
+                    return blackJumps;
+                } else if (color == PieceColor.RED) {
+                    return redJumps;
+                } else {
+                    throw new UnreachableCodeException();
+                }
+            } else {
+                throw new UnreachableCodeException();
             }
         }
 
         public static Vector[] getPossibleMoves(PieceColor color, PieceType type) {
-            return kingJumps;
+            if (type == PieceType.KING) {
+                return kingMoves;
+            } else if (type == PieceType.REGULAR) {
+                if (color == PieceColor.BLACK) {
+                    return blackMoves;
+                } else if (color == PieceColor.RED) {
+                    return redMoves;
+                } else {
+                    throw new UnreachableCodeException();
+                }
+            } else {
+                throw new UnreachableCodeException();
+            }
         }
 
         public GameLogic(int boardWidth, int boardHeight) {
@@ -257,14 +299,51 @@ namespace FriendlyCheckers {
             //stub
         }
 
+        public bool isSelectable(int y, int x) {
+            return true; // fix this
+        }
 
+        public Move makeMove(PieceColor player, int yStart, int xStart, int yEnd, int xEnd) {
+            Move myMove = getMove(player, yStart, xStart, yEnd, xEnd);
+            doMove(myMove);
+            return myMove;
+        }
 
-        public Move makeMove(PieceColor player, int yStart, int xStart, int yEnd, int xEnd){
-            List<Vector> removals = new List<Vector>();
-            List<Vector> additions = new List<Vector>(); 
+        private void doMove(Move move) {
+            if (move.getMoveNumber() == moveNumber + 1) {
+                foreach (Piece removal in move.getRemovals()) {
+                    board.removePieceFromCell(removal);
+                }
+                foreach (Piece addition in move.getAdditions()) {
+                    board.addPieceToCell(addition);
+                }
+                moveNumber++;
+            } else {
+                throw new BadMoveNumberException();
+            }
+        }
+
+        private void undoMove(Move move) {
+            if (move.getMoveNumber() == moveNumber - 1) {
+                foreach (Piece addition in move.getAdditions()) { //add removals
+                    board.removePieceFromCell(addition);
+                }
+                foreach (Piece removal in move.getRemovals()) { //remove additions
+                    board.addPieceToCell(removal);
+                }
+                moveNumber--;
+            } else {
+                throw new BadMoveNumberException();
+            }
+        }
+
+        private Move getMove(PieceColor player, int yStart, int xStart, int yEnd, int xEnd){
+            List<Piece> removals = new List<Piece>();
+            List<Piece> additions = new List<Piece>(); 
 
             Piece start = board.getCellContents(yStart, xStart); 
             Piece end = board.getCellContents(yEnd, yStart);
+            Vector endLoc = new Vector(yEnd, yStart); 
   
             if(start == null) { //there is no piece here
                 throw new CellEmptyException(); 
@@ -275,22 +354,47 @@ namespace FriendlyCheckers {
             if(start.getColor() != player){ 
                 throw new PieceWrongColorException(); 
             }
-            Vector movement = new Vector(yEnd - yStart, xEnd - xStart);
 
-            Vector[] moves = getPossibleMoves(start.getColor(), start.getType());
+            Vector myMove = new Vector(yEnd - yStart, xEnd - xStart);
+            bool foundValid = false; 
 
+            if(Math.Abs(myMove.getX()) == 1 && Math.Abs(myMove.getY()) == 1) { //move is not a jump
+                Vector[] moves = getPossibleMoves(start.getColor(), start.getType());
+                foreach(Vector move in moves) { 
+                    if (move == myMove) {
+                        removals.Add(start);
+                        additions.Add(start.newLocation(end.getCoordinates())); 
+                        foundValid = true; 
+                        break;
+                    }
+                }
+            } else if (Math.Abs(myMove.getX()) == 2 && Math.Abs(myMove.getY()) == 2) { //move is a jump
+                Vector[] moves = getPossibleJumps(start.getColor(), start.getType());
+                foreach (Vector move in moves) {
+                    if (move == myMove) {
+                        Vector jumpedLoc = start.getCoordinates().add(move.divideVector(2));
+                        Piece jumpedPiece = board.getCellContents(jumpedLoc);
+                        if (jumpedPiece == null) {
+                            throw new InvalidMoveException();
+                        }
+                        if (jumpedPiece.getColor() == getOppositeColor(start.getColor())) {
+                            removals.Add(start);
+                            removals.Add(jumpedPiece);
+                            additions.Add(start.newLocation(endLoc));
+                            foundValid = true;
+                        }
+                        break;
+                    }
+                }
+            } else {
+                throw new InvalidMoveException();
+            }
 
-
-
-            moveNumber++; 
-            return new Move(moveNumber, removals, additions); 
-            
-
+            if (!foundValid) {
+                throw new InvalidMoveException();
+            }
+            int myMoveNumber = moveNumber + 1; 
+            return new Move(myMoveNumber, removals, additions); 
         }
-
-
-            
-
-
     }
 }
