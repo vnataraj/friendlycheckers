@@ -45,7 +45,7 @@ namespace PhoneApp1
 
             c = new Color();
             c.R = c.G = c.B = 255;
-            c.A = 100;
+            c.A = 150;
             highlight.Fill = new SolidColorBrush(c);
 
             DarkRed = new Color();
@@ -84,11 +84,11 @@ namespace PhoneApp1
             {
                 row = (k / 4) + ((k>=12)? 2 : 0);
                 col = 2*(k % 4) + (row%2==0?0:1);
-                pieces[row,col] = new Checker(row, col, (k < 12) ? Colors.Red : DarkGrey,
+                pieces[col,row] = new Checker(col, row, (k < 12) ? Colors.Red : DarkGrey,
                                                 (k < 12) ? DarkRed : Colors.Black);
                
-                mainCanvas.Children.Add(pieces[row,col].getEl2());
-                mainCanvas.Children.Add(pieces[row,col].getEl1());
+                mainCanvas.Children.Add(pieces[col,row].getEl2());
+                mainCanvas.Children.Add(pieces[col,row].getEl1());
             }
         }
         private void createBoard()
@@ -243,7 +243,7 @@ namespace PhoneApp1
                 {
                     if (spaces[k, i].GetHashCode().Equals(o.GetHashCode()))
                     {
-                        //MessageBox.Show("You clicked ["+i+","+k+"]");
+                        MessageBox.Show("You clicked ["+i+","+k+"]");
                         Glaze_Handler(o, e);
                         break;
                     }
@@ -290,17 +290,17 @@ namespace PhoneApp1
             el1.Height = 50;
             el1.MinHeight = 50;
             el1.Fill = new SolidColorBrush(color);
-            el1.Margin = new Thickness(y * marginx - offsety, x * marginy - 2 + offsetx,
+            el1.Margin = new Thickness(x * marginx - offsety, y * marginy - 2 + offsetx,
                 400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
             el2.Width = 50;
             el2.MinWidth = 50;
             el2.Height = 50;
             el2.MinHeight = 50;
-            el2.Margin = new Thickness(y * marginx - offsety + 2, x * marginy + offsetx,
+            el2.Margin = new Thickness(x * marginx - offsety + 2, y * marginy + offsetx,
                 400 - x * marginx + offsety - 2, 400 - y * marginy - offsetx);
             el2.Fill = new SolidColorBrush(bg);
 
-            highlight = new Thickness(y * marginx - offsety, x * marginy - 2 + offsetx,
+            highlight = new Thickness(x * marginx - offsety, y * marginy - 2 + offsetx,
               400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
             el1.MouseLeftButtonUp += ellipse_MouseUp;
             el2.MouseLeftButtonUp += ellipse_MouseUp;
@@ -326,7 +326,7 @@ namespace PhoneApp1
                 el2.Fill = new SolidColorBrush(col ? MainPage.DarkRed : Colors.Black);
                 MainPage.PIECE_SELECTED = null;
             }*/
-           // MessageBox.Show("You Clicked ["+x+", "+y+"]");
+          //  MessageBox.Show("You Clicked ["+y+", "+x+"]");
         }
     }
 }
