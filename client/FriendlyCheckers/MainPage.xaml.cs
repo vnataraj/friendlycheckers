@@ -249,11 +249,11 @@ namespace FriendlyCheckers
                             m = logic.makeMove(checkerY, checkerX, i, k);
                             handleMove(m);
                         }
-                        catch (PieceWrongColorException ex)
+                        catch (PieceWrongColorException)
                         {
                             mainCanvas.Children.Remove(highlight);
                         }
-                        catch (InvalidMoveException ex)
+                        catch (InvalidMoveException)
                         {
                             mainCanvas.Children.Remove(highlight);
                             MessageBox.Show("Cannot move there.");
