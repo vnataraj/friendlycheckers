@@ -161,15 +161,6 @@ namespace FriendlyCheckers
                 move(row1, col1, row2, col2);
             }
         }
-        private Checker delete(int x, int y)
-        {
-            Checker temp = pieces[x, y];
-            mainCanvas.Children.Remove(temp.getEl2());
-            mainCanvas.Children.Remove(temp.getEl1());
-            pieces[x, y] = null;
-
-            return temp;
-        }
         private bool validMove(int x1, int y1, int x2, int y2)
         {
             if (x1 > row_W || x2 > row_W || y1 > row_W || y2 > row_W) return false;
@@ -248,13 +239,47 @@ namespace FriendlyCheckers
                     if (spaces[k, i].GetHashCode().Equals(o.GetHashCode()))
                     {
                        // MessageBox.Show("You clicked ["+i+","+k+"]");
-
+                        Move m = logic.makeMove(checkerY, checkerX, i, k);
+                        handleMove(m);
                         Glaze_Handler(o, e);
                         break;
                     }
                 }
             }
             checkerX = checkerY = -1;
+        }
+        private void handleMove(Move move)
+        {
+            List<Piece> added = move.getAdditions();
+            List<Piece> removed = move.getRemovals();
+
+            foreach (Piece p in removed)
+            {
+                Vector co = p.getCoordinates();
+                delete(co.getY(),co.getX());
+            }
+
+            foreach (Piece p in added)
+            {
+                Vector co = p.getCoordinates();
+
+                int col = co.getY();
+                int row = co.getX();
+                Checker c = new Checker(col, row,p.getColor() == PieceColor.BLACK ? Colors.DarkGray : Colors.Red,
+                                                 p.getColor() == PieceColor.BLACK ? Colors.Black : DarkRed);
+                pieces[col, row] = c;
+                mainCanvas.Children.Add(pieces[col, row].getEl2());
+                mainCanvas.Children.Add(pieces[col, row].getEl1());
+            }
+        }
+        private Checker delete(int x, int y)
+        {
+            Checker temp = pieces[x, y];
+            mainCanvas.Children.Remove(temp.getEl2());
+            mainCanvas.Children.Remove(temp.getEl1());
+            pieces[x, y] = null;
+
+            return temp;
         }
         public static void Highlight(Thickness t, int x, int y)
         {
@@ -325,7 +350,7 @@ namespace FriendlyCheckers
         {
             if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
             MainPage.Highlight(highlight,y,x);
-            MessageBox.Show("You Clicked ["+y+", "+x+"]");
+           // MessageBox.Show("You Clicked ["+y+", "+x+"]");
         }
     }
 }

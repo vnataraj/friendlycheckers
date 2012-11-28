@@ -16,3 +16,21 @@ C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheck
 C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.pdb
 C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.xml
 C:\Users\HP\documents\visual studio 2010\Projects\FriendlyCheckers\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.xml
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\ApplicationIcon.png
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\Background.png
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\FriendlyCheckers.dll
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\FriendlyCheckers.pdb
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\AppManifest.xaml
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\FriendlyCheckers.xap
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.dll
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.dll
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.pdb
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.Toolkit.xml
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\Microsoft.Phone.Controls.xml
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\App.g.i.cs
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\MainPage.g.i.cs
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\FriendlyCheckers.g.resources
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\FriendlyCheckers.dll
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\FriendlyCheckers.pdb
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\XapCacheFile.xml
