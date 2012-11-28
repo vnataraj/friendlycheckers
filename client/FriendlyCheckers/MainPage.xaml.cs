@@ -229,7 +229,6 @@ namespace FriendlyCheckers
         private void Action(object o, MouseButtonEventArgs e)
         {
             if (game_type == GameType.OUT_OF_GAME || checkerX==-1 || checkerY==-1) return;
-            HIGHLIGHTED_PIECE.toggleHighlight();
             for (int k = 0; k < row_W; k++)
             {
                 for (int i = 0; i < row_W; i++)
@@ -239,7 +238,13 @@ namespace FriendlyCheckers
                         Move m;
                         try
                         {
-                            m = logic.makeMove(checkerY, checkerX, i, k);
+                            int locX = checkerX;
+                            int locY = checkerY;
+
+                            // Unhighlight the selected piece
+                            handleHighlighting(HIGHLIGHTED_PIECE);
+
+                            m = logic.makeMove(locY, locX, i, k);
                             handleMove(m);
                             //MessageBox.Show("checkerX: " + checkerX + "  checkerY: " + checkerY );
                         }
@@ -285,13 +290,27 @@ namespace FriendlyCheckers
 
             return temp;
         }
-        public static void setPiece(Checker c, int x, int y)
+        // The highlighted piece is also the selected piece.
+        // Ie, checkerX = HIGHLIGHTED_PIECE.getX(), and checkerY = HIGHLIGHTED_PIECE.getY()
+        public static void handleHighlighting(Checker c)
         {
-            if (checkerX != -1 && checkerY != -1)
+            if(HIGHLIGHTED_PIECE!=null)
                 HIGHLIGHTED_PIECE.toggleHighlight();
-            checkerX = x;
-            checkerY = y;
-            HIGHLIGHTED_PIECE = c;
+
+            //if the alrady highlighted piece is the same as the one being clicked
+            if (HIGHLIGHTED_PIECE!=null && HIGHLIGHTED_PIECE.Equals(c)) 
+            {
+                checkerX = checkerY = -1;
+                HIGHLIGHTED_PIECE = null;
+                return;
+            }
+            else //otherwise, a piece is either being clicked for the first time or is switching highlights.
+            {
+                checkerX = c.getX();
+                checkerY = c.getY();
+                HIGHLIGHTED_PIECE = c;
+                HIGHLIGHTED_PIECE.toggleHighlight();
+            }
         }
         public GameType getGameType()
         {
@@ -339,6 +358,7 @@ namespace FriendlyCheckers
         public int getY() { return this.y; }
         public Color getColor() { return this.color; }
         public Color getBG() { return this.bg; }
+        public Boolean Equals(Checker c) { return (c.getX() == this.getX() && c.getY() == this.getY()); }
         public void toggleHighlight()
         {
             if (!lit)
@@ -350,8 +370,8 @@ namespace FriendlyCheckers
         private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
-            toggleHighlight();
-            MainPage.setPiece(this, x, y);
+            //toggleHighlight();
+            MainPage.handleHighlighting(this);
         }
     }
 }
