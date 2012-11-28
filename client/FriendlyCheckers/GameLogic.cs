@@ -91,6 +91,10 @@ namespace FriendlyCheckers {
             this.y = y;
         }
 
+        public string ToString() {
+            return ":" + getY() + "," + getX() + ":";
+        }
+
         public int getX() { 
             return x; 
         }
@@ -336,6 +340,7 @@ namespace FriendlyCheckers {
         }
 
         public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
+            System.Diagnostics.Debug.WriteLine("makeMove called"); 
             Move myMove = getMove(yStart, xStart, yEnd, xEnd);
             doMove(myMove);
             return myMove;
@@ -381,7 +386,8 @@ namespace FriendlyCheckers {
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
 
-            Piece start = board.getCellContents(yStart, xStart); 
+            Piece start = board.getCellContents(yStart, xStart);
+            System.Diagnostics.Debug.WriteLine("start vector is " + start.getCoordinates().ToString()); 
             Piece end = board.getCellContents(yEnd, xEnd);
             Vector endLoc = new Vector(yEnd, xEnd); 
   
@@ -396,14 +402,17 @@ namespace FriendlyCheckers {
             }
 
             Vector myMove = new Vector(yEnd - yStart, xEnd - xStart);
+            System.Diagnostics.Debug.WriteLine("myMove is " + myMove.ToString()); 
             bool foundValid = false; 
 
             if(Math.Abs(myMove.getX()) == 1 && Math.Abs(myMove.getY()) == 1) { //move is not a jump
+                System.Diagnostics.Debug.WriteLine("Move is not a jump.");
                 Vector[] moves = getPossibleMoves(start.getColor(), start.getType());
-                foreach(Vector move in moves) { 
-                    if (move == myMove) {
+                foreach(Vector move in moves) {
+                    System.Diagnostics.Debug.WriteLine("testing possible move " + move.ToString()); 
+                    if (myMove.Equals(move)) {
                         removals.Add(start);
-                        additions.Add(start.newLocation(end.getCoordinates())); 
+                        additions.Add(start.newLocation(start.getCoordinates().add(myMove))); 
                         foundValid = true; 
                         break;
                     }
@@ -411,10 +420,11 @@ namespace FriendlyCheckers {
             } else if (Math.Abs(myMove.getX()) == 2 && Math.Abs(myMove.getY()) == 2) { //move is a jump
                 Vector[] moves = getPossibleJumps(start.getColor(), start.getType());
                 foreach (Vector move in moves) {
-                    if (move == myMove) {
+                    if (myMove.Equals(move)) {
                         Vector jumpedLoc = start.getCoordinates().add(move.divideVector(2));
                         Piece jumpedPiece = board.getCellContents(jumpedLoc);
                         if (jumpedPiece == null) {
+                            System.Diagnostics.Debug.WriteLine("cannot jump an empty square");
                             throw new InvalidMoveException();
                         }
                         if (jumpedPiece.getColor() == getOppositeColor(start.getColor())) {
@@ -422,15 +432,20 @@ namespace FriendlyCheckers {
                             removals.Add(jumpedPiece);
                             additions.Add(start.newLocation(endLoc));
                             foundValid = true;
+                        } else {
+                            System.Diagnostics.Debug.WriteLine("cannot jump your own piece");
+                            throw new InvalidMoveException();
                         }
                         break;
                     }
                 }
             } else {
+                System.Diagnostics.Debug.WriteLine("vector is wrong length"); 
                 throw new InvalidMoveException();
             }
 
             if (!foundValid) {
+                System.Diagnostics.Debug.WriteLine("Could not find match vector");
                 throw new InvalidMoveException();
             }
             int myMoveNumber = moveNumber + 1; 
