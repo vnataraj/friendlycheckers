@@ -203,6 +203,13 @@ namespace FriendlyCheckers {
         int height;
         int width;
 
+        public int getHeight() {
+            return height;
+        }
+        public int getWidth() {
+            return width;
+        }
+
         public Board(int height, int width) {
             this.grid = new Cell[height, width];
             for (int y = 0; y < height; y++) {
@@ -292,6 +299,26 @@ namespace FriendlyCheckers {
             this.board = new Board(boardWidth, boardHeight);
             moveNumber = 0;
         }
+
+        public string getBoardText() {
+            string t = "";
+            for (int y = 0; y < board.getHeight(); y++) {
+                for (int x; x < board.getWidth(); x++) {
+                    Piece p = board.getCellContents(y, x);
+                    if (p == null) {
+                        t += "n";
+                    } else {
+                        if (p.getColor() == PieceColor.BLACK) {
+                            t += "b";
+                        } else {
+                            t += "r";
+                        }
+                    }
+                }
+            }
+            return t;
+        }
+
 
         public void addPiece(Piece p){ 
             board.addPieceToCell(p); 
