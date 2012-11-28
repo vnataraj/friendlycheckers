@@ -20,14 +20,13 @@ namespace FriendlyCheckers
         public static Color HighlightRed;
         public static Color HighlightGrey;
         public static Checker HIGHLIGHTED_PIECE;
-        public static int checkerX, checkerY;
-        private static Canvas mainCanvas;
+
+        private Canvas mainCanvas;
         private GameLogic logic;
         private Rectangle[,] spaces;
         private Checker[,] pieces;
         private int row_W = 8;
         private int w = 400, h = 400;
-        private int tapX, tapY;
 
         public enum GameType { OUT_OF_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
         public static GameType game_type = GameType.OUT_OF_GAME;
@@ -35,7 +34,7 @@ namespace FriendlyCheckers
         public MainPage()
         {
             InitializeComponent();
-            tapX = checkerX = tapY = checkerY = -1;
+
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
             shade.A = 150;
@@ -228,7 +227,7 @@ namespace FriendlyCheckers
         }
         private void Action(object o, MouseButtonEventArgs e)
         {
-            if (game_type == GameType.OUT_OF_GAME || checkerX==-1 || checkerY==-1) return;
+            if (game_type == GameType.OUT_OF_GAME || HIGHLIGHTED_PIECE ==null) return;
             for (int k = 0; k < row_W; k++)
             {
                 for (int i = 0; i < row_W; i++)
@@ -238,15 +237,14 @@ namespace FriendlyCheckers
                         Move m;
                         try
                         {
-                            int locX = checkerX;
-                            int locY = checkerY;
+                            int locX = HIGHLIGHTED_PIECE.getX();
+                            int locY = HIGHLIGHTED_PIECE.getY();
 
                             // Unhighlight the selected piece
                             handleHighlighting(HIGHLIGHTED_PIECE);
 
                             m = logic.makeMove(locY, locX, i, k);
                             handleMove(m);
-                            //MessageBox.Show("checkerX: " + checkerX + "  checkerY: " + checkerY );
                         }
                         catch (PieceWrongColorException){ MessageBox.Show("You cannot move your opponent's pieces!"); }
                         catch (InvalidMoveException){MessageBox.Show("Invalid move.");}
@@ -255,7 +253,7 @@ namespace FriendlyCheckers
                     }
                 }
             }
-            checkerX = checkerY = -1;
+            HIGHLIGHTED_PIECE = null;
         }
         private void handleMove(Move move)
         {
@@ -300,14 +298,11 @@ namespace FriendlyCheckers
             //if the alrady highlighted piece is the same as the one being clicked
             if (HIGHLIGHTED_PIECE!=null && HIGHLIGHTED_PIECE.Equals(c)) 
             {
-                checkerX = checkerY = -1;
                 HIGHLIGHTED_PIECE = null;
                 return;
             }
             else //otherwise, a piece is either being clicked for the first time or is switching highlights.
             {
-                checkerX = c.getX();
-                checkerY = c.getY();
                 HIGHLIGHTED_PIECE = c;
                 HIGHLIGHTED_PIECE.toggleHighlight();
             }
@@ -370,8 +365,23 @@ namespace FriendlyCheckers
         private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
-            //toggleHighlight();
             MainPage.handleHighlighting(this);
         }
+    }
+    public class Player
+    {
+        private PieceColor myColor;
+        private String myName;
+        public Player(String name, PieceColor color)
+        {
+            this.myName = name;
+            this.myColor = color;
+        }
+        public Player(String name): this(name, PieceColor.BLACK){}
+        public Player() : this("Player", PieceColor.BLACK) { }
+        public void setName(String name) { this.myName = name; }
+        public void setColor(PieceColor color) { this.myColor = color; }
+        public String getName() { return myName; }
+        public PieceColor getColor() { return myColor; }
     }
 }
