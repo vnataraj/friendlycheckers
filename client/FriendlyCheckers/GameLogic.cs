@@ -343,9 +343,9 @@ namespace FriendlyCheckers {
 
         public PieceColor whoseMove() {
             if (moveNumber % 2 == 1) {
-                return PieceColor.BLACK;
-            } else {
                 return PieceColor.RED;
+            } else {
+                return PieceColor.BLACK;
             }
         }
 
