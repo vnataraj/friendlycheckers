@@ -315,6 +315,7 @@ namespace FriendlyCheckers {
                         }
                     }
                 }
+                t += "\n"; 
             }
             return t;
         }
