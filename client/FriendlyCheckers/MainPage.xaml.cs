@@ -35,7 +35,6 @@ namespace FriendlyCheckers
         {
             InitializeComponent();
             tapX = checkerX = tapY = checkerY = -1;
-            logic = new GameLogic(row_W, row_W);
             Color c = new Color();
             c.R = c.G = c.B = 0;
             c.A = 150;
@@ -77,6 +76,7 @@ namespace FriendlyCheckers
         }
         private void createPieces()
         {
+            logic = new GameLogic(row_W, row_W);
             pieces = new Checker[8,8];
             int row = 0, col = 0;
             for (int k = 0; k < 24; k++)
@@ -85,10 +85,14 @@ namespace FriendlyCheckers
                 col = 2*(k % 4) + (row%2==0?0:1);
                 pieces[col,row] = new Checker(col, row, (k < 12) ? Colors.Red : DarkGrey,
                                                 (k < 12) ? DarkRed : Colors.Black);
-               
+                Vector vect = new Vector(row, col);
+                //MessageBox.Show(col + ", " + row);
+                Piece piece = new Piece((k < 12) ? PieceColor.RED: PieceColor.BLACK,vect,PieceType.REGULAR);
+                logic.addPiece(piece);
                 mainCanvas.Children.Add(pieces[col,row].getEl2());
                 mainCanvas.Children.Add(pieces[col,row].getEl1());
             }
+            MessageBox.Show(logic.getBoardText());
         }
         private void createBoard()
         {
@@ -239,8 +243,27 @@ namespace FriendlyCheckers
                     if (spaces[k, i].GetHashCode().Equals(o.GetHashCode()))
                     {
                        // MessageBox.Show("You clicked ["+i+","+k+"]");
-                        Move m = logic.makeMove(checkerY, checkerX, i, k);
-                        handleMove(m);
+                        Move m;
+                        try
+                        {
+                            m = logic.makeMove(checkerY, checkerX, i, k);
+                            handleMove(m);
+                        }
+                        catch (PieceWrongColorException ex)
+                        {
+                            mainCanvas.Children.Remove(highlight);
+                        }
+                        catch (InvalidMoveException ex)
+                        {
+                            mainCanvas.Children.Remove(highlight);
+                            MessageBox.Show("Cannot move there.");
+                        }
+                        catch (GameLogicException ex)
+                        {
+                            MessageBox.Show(ex.StackTrace);
+                            MessageBox.Show("((" + checkerY + ", " + checkerX + ", " + i + ", " + k + "))");
+                            //MessageBox.Show("Something went wrong.");
+                        }
                         Glaze_Handler(o, e);
                         break;
                     }
@@ -349,7 +372,7 @@ namespace FriendlyCheckers
         private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
-            MainPage.Highlight(highlight,y,x);
+            MainPage.Highlight(highlight,x,y);
            // MessageBox.Show("You Clicked ["+y+", "+x+"]");
         }
     }
