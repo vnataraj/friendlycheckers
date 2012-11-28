@@ -354,8 +354,8 @@ namespace FriendlyCheckers {
             List<Piece> additions = new List<Piece>(); 
 
             Piece start = board.getCellContents(yStart, xStart); 
-            Piece end = board.getCellContents(yEnd, yStart);
-            Vector endLoc = new Vector(yEnd, yStart); 
+            Piece end = board.getCellContents(yEnd, xEnd);
+            Vector endLoc = new Vector(yEnd, xEnd); 
   
             if(start == null) { //there is no piece here
                 throw new CellEmptyException(); 
