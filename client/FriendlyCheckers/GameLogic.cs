@@ -150,6 +150,10 @@ namespace FriendlyCheckers {
             return new Piece(this.color, loc, this.type);
         }
 
+        public Piece newType(PieceType type) {
+            return new Piece(this.color, this.coordinates, type);
+        }
+
         public PieceType getType(){ 
             return type; 
         }
@@ -336,7 +340,7 @@ namespace FriendlyCheckers {
 
         public bool isSelectable(int y, int x) {
             Piece p = board.getCellContents(y, x); 
-            return p.getColor() == this.whoseMove(); // fix this
+            return p.getColor() == this.whoseMove(); 
         }
 
         public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
@@ -382,6 +386,16 @@ namespace FriendlyCheckers {
             }
         }
 
+        public Piece givePieceNewLocationKingCheck(Piece currentP, Vector newLoc) { 
+            Piece newP = currentP.newLocation(newLoc);
+            if (newLoc.getY() == 0 && newP.getColor() == PieceColor.BLACK) {
+                newP = newP.newType(PieceType.KING);
+            } else if (newLoc.getY() == board.getHeight() - 1 && newP.getColor() == PieceColor.RED) {
+                newP = newP.newType(PieceType.KING);
+            }
+            return newP; 
+        }
+
         private Move getMove(int yStart, int xStart, int yEnd, int xEnd){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
@@ -412,7 +426,7 @@ namespace FriendlyCheckers {
                     System.Diagnostics.Debug.WriteLine("testing possible move " + move.ToString()); 
                     if (myMove.Equals(move)) {
                         removals.Add(start);
-                        additions.Add(start.newLocation(start.getCoordinates().add(myMove))); 
+                        additions.Add(givePieceNewLocationKingCheck(start, start.getCoordinates().add(myMove))); 
                         foundValid = true; 
                         break;
                     }
@@ -430,7 +444,7 @@ namespace FriendlyCheckers {
                         if (jumpedPiece.getColor() == getOppositeColor(start.getColor())) {
                             removals.Add(start);
                             removals.Add(jumpedPiece);
-                            additions.Add(start.newLocation(endLoc));
+                            additions.Add(givePieceNewLocationKingCheck(start, endLoc));
                             foundValid = true;
                         } else {
                             System.Diagnostics.Debug.WriteLine("cannot jump your own piece");
