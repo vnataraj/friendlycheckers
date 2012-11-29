@@ -392,6 +392,10 @@ namespace FriendlyCheckers
         {
             FORCE_JUMP = (Op_ForceJump.IsChecked == true);
             TABLE_STYLE = (Op_Rotate.IsChecked==true);
+            if(TABLE_STYLE)
+                local_multi_turn_timer.Interval = new TimeSpan(0, 0, 0, 0, 0); 
+            else
+                local_multi_turn_timer.Interval = new TimeSpan(0, 0, 0, 0, 800); 
         }
     }
     public class BoardSpace
