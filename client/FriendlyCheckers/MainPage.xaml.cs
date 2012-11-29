@@ -43,6 +43,7 @@ namespace FriendlyCheckers
         {
             InitializeComponent();
             LayoutRoot.Children.Remove(OptionsPanel);
+            LayoutRoot.Children.Remove(AboutPanel);
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -222,6 +223,7 @@ namespace FriendlyCheckers
             {
                 ContentPanel.Children.Add(mainCanvas);
                 LayoutRoot.Children.Remove(OptionsPanel);
+                LayoutRoot.Children.Remove(AboutPanel);
                 CheckBox_Checked(sender, e);
             }
             else
@@ -253,6 +255,7 @@ namespace FriendlyCheckers
             PageTitle.Text = "About";
             ClearMenu();
             LayoutRoot.Children.Add(TitlePanel);
+            LayoutRoot.Children.Add(AboutPanel);
             ContentPanel.Children.Remove(mainCanvas);
             ContentPanel.Children.Add(quit);
         }

@@ -24,7 +24,7 @@
         <!--TitlePanel contains the name of the application and page title-->
         <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
             <TextBlock x:Name="ApplicationTitle" Text="CS252 Project - Team 12" Style="{StaticResource PhoneTextNormalStyle}"/>
-            <TextBlock x:Name="PageTitle" Text="Checkers" Margin="9,-7,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
+            <TextBlock x:Name="PageTitle" Text="Checkers" Margin="9,-15,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
         </StackPanel>
         <Grid Name="HiddenPanel">
             <Grid.ColumnDefinitions>
@@ -51,12 +51,16 @@
             <CheckBox Name="Op_Rotate" Checked="CheckBox_Checked">Play local multiplayer "table style"</CheckBox>
             <CheckBox Name="Op_ForceJump" Checked="CheckBox_Checked">Force jumps</CheckBox>
         </StackPanel>
-        <!--StackPanel Name ="AboutPanel" Margin="0,139,0,74" Grid.RowSpan="2">
-            <TextBlock x:Name="GameInfo" TextWrapping="Wrap" Text="[optional text about the game]" FontSize="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
-            <TextBlock x:Name="JoeInfo" TextWrapping="Wrap" Text="Menus, Images, and Visualization - Joseph Klemen" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
-            <TextBlock x:Name="CalebInfo" TextWrapping="Wrap" Text="Game Logic, GamePlay and AI - Caleb Rouleau" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
-            <TextBlock x:Name="VipInfo" TextWrapping="Wrap" Text="Multiplayer online, and database/gamelogic communication - Vipul Nataraj" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
-            <TextBlock x:Name="AndrewInfo" TextWrapping="Wrap" Text="Checkers" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
-        </StackPanel>-->
+        <StackPanel Name ="AboutPanel" Margin="0,139,0,74" Grid.RowSpan="2">
+            <TextBlock x:Name="GameInfo" TextWrapping="Wrap" Text="FriendlyCheckers was the joint effort of four people working on four components of the game:" FontSize="24" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="157" Width="447" />
+            <TextBlock x:Name="JoeInfo" TextWrapping="Wrap" Text="Menus, Images, and Visualization" FontSize ="20" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="29" Width="447" />
+            <TextBlock x:Name="JoeName" Text="Joseph Klemen" FontSize="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="76" Width="450" />
+            <TextBlock x:Name="CalebInfo" TextWrapping="Wrap" Text="Game Logic, Game Play and AI" FontSize ="20" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="29" Width="444" />
+            <TextBlock x:Name="CalebName" Text="Caleb Rouleau" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="83" Width="446" />
+            <TextBlock x:Name="VipInfo" TextWrapping="Wrap" Text="Online connection and networking" FontSize="20" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="30" Width="446" />
+            <TextBlock x:Name="VipName" Text="Vipul Nataraj" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="83" Width="443" />
+            <TextBlock x:Name="AndrewInfo" TextWrapping="Wrap" Text="Database storage and retrieval" FontSize="20" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="30" Width="442" />
+            <TextBlock x:Name="AndrewName" Text="Andrew Cutler" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="36" Width="440" />
+        </StackPanel>
     </Grid>
 </phone:PhoneApplicationPage>
