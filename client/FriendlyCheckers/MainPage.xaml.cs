@@ -281,7 +281,7 @@ namespace FriendlyCheckers
         private static void timerTick(object o, EventArgs sender)
         {
             local_multi_turn_timer.Stop();
-            //MessageBox.Show((logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.");
+            MessageBox.Show((logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.");
             if (game_type == GameType.LOCAL_MULTI)
                 rotateBoard180();
             wait_for_timer = false;
