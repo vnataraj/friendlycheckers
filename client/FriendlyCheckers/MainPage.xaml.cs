@@ -19,14 +19,17 @@ namespace FriendlyCheckers
         public static Color DarkGrey;
         public static Color HighlightRed;
         public static Color HighlightGrey;
-        public static Checker HIGHLIGHTED_PIECE;
+        private Color Brown;
+        private Color Sand;
 
-        private Canvas mainCanvas;
-        private GameLogic logic;
-        private Rectangle[,] spaces;
-        private Checker[,] pieces;
+        public static Checker HIGHLIGHTED_PIECE;
+        public static int w = 400, h = 400;
+        private static Canvas mainCanvas;
+        private static GameLogic logic;
+
+        private static BoardSpace[,] spaces;
+        private static Checker[,] pieces;
         private int row_W = 8;
-        private int w = 400, h = 400;
 
         public enum GameType { OUT_OF_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
         public static GameType game_type = GameType.OUT_OF_GAME;
@@ -41,6 +44,18 @@ namespace FriendlyCheckers
             Shader.Fill = new SolidColorBrush(shade);
             ContentPanel.Children.Remove(Shader);
 
+            InitializeColors();
+            RemoveInGameStats();
+            mainCanvas = new Canvas();
+            mainCanvas.Width = w;
+            mainCanvas.Height = h;
+            ContentPanel.Children.Add(mainCanvas);
+            createBoard();
+            createPieces();
+            scramble();
+        }
+        private void InitializeColors()
+        {
             HighlightRed = new Color();
             HighlightRed.R = 255;
             HighlightRed.G = 100;
@@ -63,14 +78,17 @@ namespace FriendlyCheckers
             DarkGrey.R = DarkGrey.G = DarkGrey.B = 20;
             DarkGrey.A = 255;
 
-            RemoveInGameStats();
-            mainCanvas = new Canvas();
-            mainCanvas.Width = w;
-            mainCanvas.Height = h;
-            ContentPanel.Children.Add(mainCanvas);
-            createBoard();
-            createPieces();
-            scramble();
+            Brown = new Color();
+            Brown.R = 120;
+            Brown.G = 40;
+            Brown.B = 10;
+            Brown.A = 255;
+
+            Sand = new Color();
+            Sand.R = 200;
+            Sand.G = 180;
+            Sand.B = 90;
+            Sand.A = 255;
         }
         private void createPieces()
         {
@@ -92,35 +110,14 @@ namespace FriendlyCheckers
         }
         private void createBoard()
         {
-            Color Brown = new Color();
-            Brown.R = 120;
-            Brown.G = 40;
-            Brown.B = 10;
-            Brown.A = 255;
-
-            Color Sand = new Color();
-            Sand.R = 200;
-            Sand.G = 180;
-            Sand.B = 90;
-            Sand.A = 255;
-
-            spaces = new Rectangle[row_W, row_W];
+            spaces = new BoardSpace[row_W, row_W];
             int size = 55;
             for (int k = 0; k < row_W; k++)
             {
                 for (int i = 0; i < row_W; i++)
                 {
-                    spaces[k, i] = new Rectangle();
-                    spaces[k, i].MinWidth = size;
-                    spaces[k, i].MinHeight = size;
-                    spaces[k, i].Width = size;
-                    spaces[k, i].Height = size;
-                    spaces[k, i].MouseLeftButtonUp += Action;
-                    spaces[k, i].Fill = new SolidColorBrush(((i + k) % 2 == 0) ? Sand : Brown);
-                    int lm = (k * size) - 20;
-                    int tm = (i * size) - 115;
-                    spaces[k, i].Margin = new Thickness(lm, tm, w - lm, h - tm);
-                    mainCanvas.Children.Add(spaces[k, i]);
+                    spaces[k, i] = new BoardSpace(k, i, size, ((i + k) % 2 == 0) ? Sand : Brown);
+                    mainCanvas.Children.Add(spaces[k, i].getRect());
                 }
             }
         }
@@ -225,37 +222,27 @@ namespace FriendlyCheckers
             }
             createPieces();
         }
-        private void Action(object o, MouseButtonEventArgs e)
+        public static void MakeMove(BoardSpace bs)
         {
-            if (game_type == GameType.OUT_OF_GAME || HIGHLIGHTED_PIECE ==null) return;
-            for (int k = 0; k < row_W; k++)
+            if (game_type == GameType.OUT_OF_GAME || HIGHLIGHTED_PIECE == null) return;
+            Move m;
+            try
             {
-                for (int i = 0; i < row_W; i++)
-                {
-                    if (spaces[k, i].GetHashCode().Equals(o.GetHashCode()))
-                    {
-                        Move m;
-                        try
-                        {
-                            int locX = HIGHLIGHTED_PIECE.getX();
-                            int locY = HIGHLIGHTED_PIECE.getY();
+                int locX = HIGHLIGHTED_PIECE.getX();
+                int locY = HIGHLIGHTED_PIECE.getY();
 
-                            // Unhighlight the selected piece
-                            handleHighlighting(HIGHLIGHTED_PIECE);
+                // Unhighlight the selected piece
+                handleHighlighting(HIGHLIGHTED_PIECE);
 
-                            m = logic.makeMove(locY, locX, i, k);
-                            handleMove(m);
-                        }
-                        catch (PieceWrongColorException){ MessageBox.Show("You cannot move your opponent's pieces!"); }
-                        catch (InvalidMoveException){MessageBox.Show("Invalid move.");}
-                        catch (GameLogicException) {MessageBox.Show("A logic exception has occurred.");}
-                        break;
-                    }
-                }
+                m = logic.makeMove(locY, locX, bs.getY(), bs.getX());
+                handleMove(m);
             }
+            catch (PieceWrongColorException) { MessageBox.Show("You cannot move your opponent's pieces!"); }
+            catch (InvalidMoveException) { MessageBox.Show("Invalid move."); }
+            catch (GameLogicException) { MessageBox.Show("A logic exception has occurred."); }
             HIGHLIGHTED_PIECE = null;
         }
-        private void handleMove(Move move)
+        private static void handleMove(Move move)
         {
             List<Piece> added = move.getAdditions();
             List<Piece> removed = move.getRemovals();
@@ -279,7 +266,7 @@ namespace FriendlyCheckers
                 mainCanvas.Children.Add(pieces[col, row].getEl1());
             }
         }
-        private Checker delete(int x, int y)
+        private static Checker delete(int x, int y)
         {
             Checker temp = pieces[x, y];
             mainCanvas.Children.Remove(temp.getEl2());
@@ -310,6 +297,38 @@ namespace FriendlyCheckers
         public GameType getGameType()
         {
             return game_type;
+        }
+    }
+    public class BoardSpace
+    {
+        private Rectangle space;
+        private int gridx, gridy, size;
+        private Color color;
+
+        public BoardSpace(int x, int y, int size, Color c)
+        {
+            this.gridx = x;
+            this.gridy = y;
+            this.color = c;
+            this.size = size;
+
+            space = new Rectangle();
+            space.Width = size;
+            space.Height = size;
+            space.MinWidth = size;
+            space.MinHeight = size;
+            space.MouseLeftButtonUp += Space_Action;
+            space.Fill = new SolidColorBrush(color);
+            int lm = (x * size) - 20;
+            int tm = (y * size) - 115;
+            space.Margin = new Thickness(lm, tm, MainPage.w - lm, MainPage.h - tm);
+        }
+        public int getX(){return this.gridx;}
+        public int getY(){return this.gridy;}
+        public Rectangle getRect() { return space; }
+        private void Space_Action(object o, MouseButtonEventArgs e)
+        {
+            MainPage.MakeMove(this);
         }
     }
     public class Checker
