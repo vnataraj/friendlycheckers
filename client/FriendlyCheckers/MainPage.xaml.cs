@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Threading;
 using System.Net;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,18 +20,20 @@ namespace FriendlyCheckers
         public static Color DarkGrey;
         public static Color HighlightRed;
         public static Color HighlightGrey;
-        private Color Brown;
-        private Color Sand;
+        private static Color Brown;
+        private static Color Sand;
 
         public static Checker HIGHLIGHTED_PIECE;
         public static int w = 400, h = 400;
         private static Canvas mainCanvas;
         private static GameLogic logic;
-
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
-        private int row_W = 8;
 
+        private static Boolean rotated = false;
+        private static Boolean wait_for_timer = false;
+        private static int row_W = 8;
+        private static DispatcherTimer local_multi_turn_timer;
         public enum GameType { OUT_OF_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
         public static GameType game_type = GameType.OUT_OF_GAME;
 
@@ -43,6 +46,10 @@ namespace FriendlyCheckers
             shade.A = 150;
             Shader.Fill = new SolidColorBrush(shade);
             ContentPanel.Children.Remove(Shader);
+
+            local_multi_turn_timer = new DispatcherTimer();
+            local_multi_turn_timer.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
+            local_multi_turn_timer.Interval = new TimeSpan(1000);  // Timer will tick in 600 milliseconds. THis is the wait between moves.
 
             InitializeColors();
             RemoveInGameStats();
@@ -222,8 +229,34 @@ namespace FriendlyCheckers
             }
             createPieces();
         }
+        private static void rotateBoard180()
+        {
+            for (int k = 0; k < row_W; k++)
+            {
+                for (int i = 0; i < row_W; i++)
+                {
+                    //spaces[i, k].setColor(spaces[i,k].getColor().Equals(Sand)?Brown:Sand);
+                    if (pieces[i, k] == null) continue;
+                    Checker c = pieces[i, k];
+                    if (!rotated)
+                        c.rotate(row_W - c.getY() - 1, row_W - c.getX() - 1);
+                    else
+                        c.rotate(c.getY(), c.getX());
+                }
+            }
+            rotated = !rotated;
+        }
+        public GameType getGameType()
+        {
+            return game_type;
+        }
+
+        //////////
+        //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
+        //////////
         public static void MakeMove(BoardSpace bs)
         {
+            if (wait_for_timer) return;
             if (game_type == GameType.OUT_OF_GAME || HIGHLIGHTED_PIECE == null) return;
             Move m;
             try
@@ -233,14 +266,25 @@ namespace FriendlyCheckers
 
                 // Unhighlight the selected piece
                 handleHighlighting(HIGHLIGHTED_PIECE);
-
-                m = logic.makeMove(locY, locX, bs.getY(), bs.getX());
+               // MessageBox.Show("From [" + locY + ", " + locX + "]  to [" + bs.getY() + ", " + bs.getX() + "]");
+                m = logic.makeMove(locY, locX, (!rotated ? bs.getY() : (row_W - bs.getY() - 1)), (!rotated ? bs.getX() : (row_W - bs.getX() - 1)));
                 handleMove(m);
+
+                local_multi_turn_timer.Start();
+                wait_for_timer = true;
             }
             catch (PieceWrongColorException) { MessageBox.Show("You cannot move your opponent's pieces!"); }
             catch (InvalidMoveException) { MessageBox.Show("Invalid move."); }
             catch (GameLogicException) { MessageBox.Show("A logic exception has occurred."); }
             HIGHLIGHTED_PIECE = null;
+        }
+        private static void timerTick(object o, EventArgs sender)
+        {
+            local_multi_turn_timer.Stop();
+            MessageBox.Show((logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.");
+            if (game_type == GameType.LOCAL_MULTI)
+                rotateBoard180();
+            wait_for_timer = false;
         }
         private static void handleMove(Move move)
         {
@@ -264,6 +308,9 @@ namespace FriendlyCheckers
                 pieces[col, row] = c;
                 mainCanvas.Children.Add(pieces[col, row].getEl2());
                 mainCanvas.Children.Add(pieces[col, row].getEl1());
+
+                if(rotated)
+                    c.rotate(row_W - c.getY() - 1, row_W - c.getX() - 1);
             }
         }
         private static Checker delete(int x, int y)
@@ -279,6 +326,7 @@ namespace FriendlyCheckers
         // Ie, checkerX = HIGHLIGHTED_PIECE.getX(), and checkerY = HIGHLIGHTED_PIECE.getY()
         public static void handleHighlighting(Checker c)
         {
+            if (wait_for_timer) return;
             if(HIGHLIGHTED_PIECE!=null)
                 HIGHLIGHTED_PIECE.toggleHighlight();
 
@@ -293,10 +341,6 @@ namespace FriendlyCheckers
                 HIGHLIGHTED_PIECE = c;
                 HIGHLIGHTED_PIECE.toggleHighlight();
             }
-        }
-        public GameType getGameType()
-        {
-            return game_type;
         }
     }
     public class BoardSpace
@@ -326,6 +370,12 @@ namespace FriendlyCheckers
         public int getX(){return this.gridx;}
         public int getY(){return this.gridy;}
         public Rectangle getRect() { return space; }
+        public Color getColor() { return color; }
+        public void setColor(Color c)
+        {
+            this.color = c;
+            space.Fill = new SolidColorBrush(c);
+        }
         private void Space_Action(object o, MouseButtonEventArgs e)
         {
             MainPage.MakeMove(this);
@@ -373,6 +423,13 @@ namespace FriendlyCheckers
         public Color getColor() { return this.color; }
         public Color getBG() { return this.bg; }
         public Boolean Equals(Checker c) { return (c.getX() == this.getX() && c.getY() == this.getY()); }
+        public void rotate(int y, int x)
+        {
+            el1.Margin = new Thickness(x * marginx - offsety, y * marginy - 2 + offsetx,
+                400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
+            el2.Margin = new Thickness(x * marginx - offsety + 2, y * marginy + offsetx,
+                400 - x * marginx + offsety - 2, 400 - y * marginy - offsetx);
+        }
         public void toggleHighlight()
         {
             if (!lit)
