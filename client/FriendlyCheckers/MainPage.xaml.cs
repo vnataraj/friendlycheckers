@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using Microsoft.Phone.Controls;
+using System.Windows.Media.Imaging;
 
 namespace FriendlyCheckers
 {
@@ -109,8 +110,9 @@ namespace FriendlyCheckers
                 Vector vect = new Vector(row, col);
                 Piece piece = new Piece((k < 12) ? PieceColor.RED: PieceColor.BLACK,vect,PieceType.REGULAR);
                 logic.addPiece(piece);
-                mainCanvas.Children.Add(pieces[col,row].getEl2());
-                mainCanvas.Children.Add(pieces[col,row].getEl1());
+                mainCanvas.Children.Add(pieces[col, row].getEl2());
+                mainCanvas.Children.Add(pieces[col, row].getEl1());
+                mainCanvas.Children.Add(pieces[col, row].getCrown());
             }
         }
         private void createBoard()
@@ -306,7 +308,10 @@ namespace FriendlyCheckers
                 pieces[col, row] = c;
                 mainCanvas.Children.Add(pieces[col, row].getEl2());
                 mainCanvas.Children.Add(pieces[col, row].getEl1());
+                mainCanvas.Children.Add(pieces[col, row].getCrown());
 
+                if (p.getType() == PieceType.KING)
+                    c.king();
                 if(rotated)
                     c.rotate(row_W - c.getY() - 1, row_W - c.getX() - 1);
             }
@@ -316,6 +321,7 @@ namespace FriendlyCheckers
             Checker temp = pieces[x, y];
             mainCanvas.Children.Remove(temp.getEl2());
             mainCanvas.Children.Remove(temp.getEl1());
+            mainCanvas.Children.Remove(temp.getCrown());
             pieces[x, y] = null;
 
             return temp;
@@ -384,6 +390,7 @@ namespace FriendlyCheckers
     public class Checker
     {
         private Ellipse el1, el2;
+        private Image crown;
         private int offsetx = -111, offsety = 19, marginx = 55, marginy = 55, x, y;
         private Color color, bg, high;
         private bool col, lit;
@@ -391,6 +398,13 @@ namespace FriendlyCheckers
         {
             el1 = new Ellipse();
             el2 = new Ellipse();
+            crown = new Image();
+            BitmapImage bi = new BitmapImage();
+            bi.UriSource = new Uri("crown.png", UriKind.Relative);
+            crown.Source = bi;
+            crown.Visibility = Visibility.Collapsed;
+            crown.MouseLeftButtonUp += ellipse_MouseUp;
+
             this.x = x;
             this.y = y;
             this.lit = false;
@@ -406,6 +420,9 @@ namespace FriendlyCheckers
             el1.Fill = new SolidColorBrush(color);
             el1.Margin = new Thickness(x * marginx - offsety, y * marginy - 2 + offsetx,
                 400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
+            crown.Margin = new Thickness(x * marginx - offsety - 2, y * marginy - 4 + offsetx,
+                400 - x * marginx + offsety+2, 400 - y * marginy + 4 - offsetx);
+
             el2.Width = 50;
             el2.MinWidth = 50;
             el2.Height = 50;
@@ -418,13 +435,20 @@ namespace FriendlyCheckers
         }
         public Ellipse getEl1() { return el1; }
         public Ellipse getEl2() { return el2; }
+        public Image getCrown() { return crown; }
         public int getX() { return this.x; }
         public int getY() { return this.y; }
         public Color getColor() { return this.color; }
         public Color getBG() { return this.bg; }
+        public void king()
+        {
+            crown.Visibility = Visibility.Visible;
+        }
         public Boolean Equals(Checker c) { return (c.getX() == this.getX() && c.getY() == this.getY()); }
         public void rotate(int y, int x)
         {
+            crown.Margin = new Thickness(x * marginx - offsety - 2, y * marginy - 4 + offsetx,
+               400 - x * marginx + offsety + 2, 400 - y * marginy + 4 - offsetx);
             el1.Margin = new Thickness(x * marginx - offsety, y * marginy - 2 + offsetx,
                 400 - x * marginx + offsety, 400 - y * marginy + 2 - offsetx);
             el2.Margin = new Thickness(x * marginx - offsety + 2, y * marginy + offsetx,
