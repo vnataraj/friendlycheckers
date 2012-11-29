@@ -303,6 +303,10 @@ namespace FriendlyCheckers {
             }
         }
 
+        public int getMoveNumber() {
+            return moveNumber;
+        }
+
         public GameLogic(int boardWidth, int boardHeight) {
             this.board = new Board(boardWidth, boardHeight);
             moveNumber = 0;
