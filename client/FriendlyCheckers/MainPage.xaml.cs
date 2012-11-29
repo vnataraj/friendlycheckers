@@ -35,9 +35,10 @@ namespace FriendlyCheckers
         private static Boolean rotated = false;
         private static Boolean wait_for_timer = false;
         private static int row_W = 8;
-        private static DispatcherTimer local_multi_turn_timer;
+        private static DispatcherTimer TURN_TIMER, GAME_TIMER;
         public enum GameType { OUT_OF_GAME, OPTIONS, ABOUT, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
         public static GameType game_type = GameType.OUT_OF_GAME;
+        private int GAME_TIME = 0;
 
         public MainPage()
         {
@@ -49,9 +50,13 @@ namespace FriendlyCheckers
             shade.R = shade.G = shade.B = 0;
             shade.A = 150;
             Shader.Fill = new SolidColorBrush(shade);
-            local_multi_turn_timer = new DispatcherTimer();
-            local_multi_turn_timer.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
-            local_multi_turn_timer.Interval = new TimeSpan(0, 0, 0, 0, 800);  // Timer will tick in 800 milliseconds. This is the wait between moves.
+            GAME_TIMER = new DispatcherTimer();
+            GAME_TIMER.Tick += gameTimerTick;              // Everytime timer ticks, timer_Tick will be called
+            GAME_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 1000);  // Timer will tick in 800 milliseconds. This is the wait between moves.
+
+            TURN_TIMER = new DispatcherTimer();
+            TURN_TIMER.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
+            TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800);  // Timer will tick in 800 milliseconds. This is the wait between moves.
 
             InitializeColors();
             RemoveInGameStats();
@@ -190,34 +195,40 @@ namespace FriendlyCheckers
         }
         private void SinglePlayer_Setup(object sender, RoutedEventArgs e)
         {
+            game_type = GameType.SINGLE_PLAYER;
+            TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             ClearMenu();
             Versus.Text = "Player 1 vs. Computer";
             AddInGameStats();
-            game_type = GameType.SINGLE_PLAYER;
             resetBoard();
+            GAME_TIMER.Start();
         }
         private void Local_Multi_Setup(object sender, RoutedEventArgs e)
         {
+            game_type = GameType.LOCAL_MULTI;
+            TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 
             ClearMenu();
             Versus.Text = "Player 1 vs. Player 2";
             AddInGameStats();
-            game_type = GameType.LOCAL_MULTI;
             resetBoard();
+            GAME_TIMER.Start();
         }
         private void Online_Multi_Setup(object sender, RoutedEventArgs e)
         {
-            ClearMenu();
+            game_type = GameType.ONLINE_MULTI;
+            TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0);
+            ClearMenu(); 
             Versus.Text = "Player 1 vs. [Searching...]";
             AddInGameStats();
-            game_type = GameType.ONLINE_MULTI;
             resetBoard();
             ContentPanel.Children.Add(Shader);
             ContentPanel.Children.Add(Search);
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
+            GAME_TIMER.Stop();
             if (game_type != GameType.OPTIONS && game_type != GameType.ABOUT
-                    && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel) return;
+                    && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel) { GAME_TIMER.Start(); return; }
             RemoveInGameStats();
             if (game_type == GameType.OPTIONS || game_type == GameType.ABOUT)
             {
@@ -236,6 +247,8 @@ namespace FriendlyCheckers
             ContentPanel.Children.Add(about);
             game_type = GameType.OUT_OF_GAME;
             rotated = false;
+            GAME_TIME = 0;
+            Timer.Text = "Time: 0:00";
             resetBoard();
             scramble();
         }
@@ -311,7 +324,7 @@ namespace FriendlyCheckers
                 m = logic.makeMove(locY, locX, (!rotated ? bs.getY() : (row_W - bs.getY() - 1)), (!rotated ? bs.getX() : (row_W - bs.getX() - 1)));
                 handleMove(m);
 
-                local_multi_turn_timer.Start();
+                TURN_TIMER.Start();
                 wait_for_timer = true;
             }
             catch (PieceWrongColorException) { MessageBox.Show("You cannot move your opponent's pieces!"); }
@@ -321,12 +334,20 @@ namespace FriendlyCheckers
         }
         private void timerTick(object o, EventArgs sender)
         {
-            local_multi_turn_timer.Stop();
+            TURN_TIMER.Stop();
             WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
             Moves.Text = "Moves: "+logic.getMoveNumber();
             if (!TABLE_STYLE && game_type == GameType.LOCAL_MULTI)
                 rotateBoard180();
             wait_for_timer = false;
+        }
+        private void gameTimerTick(object o, EventArgs sender)
+        {
+            GAME_TIME++;
+            int mins = GAME_TIME / 60;
+            int secs = GAME_TIME % 60;
+
+            Timer.Text = "Time: " + mins + ":" + (secs < 10 ? ("0" + secs) : ""+secs);
         }
         private static void handleMove(Move move)
         {
@@ -395,10 +416,10 @@ namespace FriendlyCheckers
         {
             FORCE_JUMP = (Op_ForceJump.IsChecked == true);
             TABLE_STYLE = (Op_Rotate.IsChecked==true);
-            if(TABLE_STYLE)
-                local_multi_turn_timer.Interval = new TimeSpan(0, 0, 0, 0, 0); 
+            if (TABLE_STYLE || game_type != GameType.LOCAL_MULTI)
+                TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             else
-                local_multi_turn_timer.Interval = new TimeSpan(0, 0, 0, 0, 800); 
+                TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 
         }
     }
     public class BoardSpace
