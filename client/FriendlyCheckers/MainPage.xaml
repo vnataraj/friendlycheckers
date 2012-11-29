@@ -39,11 +39,24 @@
         <Grid x:Name="ContentPanel" Margin="12,109,12,0" Grid.RowSpan="2">
             <TextBlock x:Name="WhoseTurn" Text="Black to move next." FontSize="32" Style="{StaticResource PhoneTextNormalStyle}" Height="56" Margin="50,506,30,97" HorizontalAlignment="Right" Width="325" />
             <Button Name="quit"  Click="Menu_Setup" Margin="-12,556,-12,6" Height="70">Quit to Menu</Button>
-            <Button Name="singleplayer"  Click="SinglePlayer_Setup" Margin="-12,444,-12,113" Height="70">Singleplayer</Button>
-            <Button Name="multiplayer_local" Click="Local_Multi_Setup" Margin="-12,500,-12,59" Height="70">Multiplayer Local</Button>
-            <Button Name="multiplayer_online" Click="Online_Multi_Setup" Margin="-12,556,-12,6" Height="70">Multiplayer Online</Button>
+            <Button Name="singleplayer"  Click="SinglePlayer_Setup" Margin="-12,444,92,113" Height="70">Singleplayer</Button>
+            <Button Name="multiplayer_local" Click="Local_Multi_Setup" Margin="-12,500,92,59" Height="70">Multiplayer Local</Button>
+            <Button Name="multiplayer_online" Click="Online_Multi_Setup" Margin="-12,556,92,6" Height="70">Multiplayer Online</Button>
+            <Button Name="options"  Click="Show_Options" Margin="351,460,8,74" FontSize ="40" Height="125">+</Button>
+            <Button Name="about"  Click="Show_About" Margin="351,570,8,19" FontSize ="26" Height="70">?</Button>
             <Rectangle x:Name="Shader" Height="452" Width="440" Margin="6,9,6,198"></Rectangle>
             <TextBlock x:Name="Search" Text="Searching for Opponents..." FontSize="32" Style="{StaticResource PhoneTextNormalStyle}" Height="56" Margin="0,206,29,397" HorizontalAlignment="Right" Width="376" />
         </Grid>
+        <StackPanel Name ="OptionsPanel" Margin="0,139,0,74" Grid.RowSpan="2">
+            <CheckBox Name="Op_Rotate" Checked="CheckBox_Checked">Play local multiplayer "table style"</CheckBox>
+            <CheckBox Name="Op_ForceJump" Checked="CheckBox_Checked">Force jumps</CheckBox>
+        </StackPanel>
+        <!--StackPanel Name ="AboutPanel" Margin="0,139,0,74" Grid.RowSpan="2">
+            <TextBlock x:Name="GameInfo" TextWrapping="Wrap" Text="[optional text about the game]" FontSize="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
+            <TextBlock x:Name="JoeInfo" TextWrapping="Wrap" Text="Menus, Images, and Visualization - Joseph Klemen" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
+            <TextBlock x:Name="CalebInfo" TextWrapping="Wrap" Text="Game Logic, GamePlay and AI - Caleb Rouleau" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
+            <TextBlock x:Name="VipInfo" TextWrapping="Wrap" Text="Multiplayer online, and database/gamelogic communication - Vipul Nataraj" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
+            <TextBlock x:Name="AndrewInfo" TextWrapping="Wrap" Text="Checkers" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}"/>
+        </StackPanel>-->
     </Grid>
 </phone:PhoneApplicationPage>

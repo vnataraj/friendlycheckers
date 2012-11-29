@@ -27,6 +27,7 @@ namespace FriendlyCheckers
         public static Checker HIGHLIGHTED_PIECE;
         public static int w = 400, h = 400;
         private static Canvas mainCanvas;
+        private static Boolean FORCE_JUMP = false, TABLE_STYLE = false;
         private static GameLogic logic;
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
@@ -35,12 +36,13 @@ namespace FriendlyCheckers
         private static Boolean wait_for_timer = false;
         private static int row_W = 8;
         private static DispatcherTimer local_multi_turn_timer;
-        public enum GameType { OUT_OF_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
+        public enum GameType { OUT_OF_GAME, OPTIONS, ABOUT, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
         public static GameType game_type = GameType.OUT_OF_GAME;
 
         public MainPage()
         {
             InitializeComponent();
+            LayoutRoot.Children.Remove(OptionsPanel);
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -133,6 +135,8 @@ namespace FriendlyCheckers
             ContentPanel.Children.Remove(singleplayer);
             ContentPanel.Children.Remove(multiplayer_local);
             ContentPanel.Children.Remove(multiplayer_online);
+            ContentPanel.Children.Remove(options);
+            ContentPanel.Children.Remove(about);
             LayoutRoot.Children.Remove(TitlePanel);
         }
         private void RemoveInGameStats()
@@ -211,13 +215,46 @@ namespace FriendlyCheckers
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
+            if (game_type != GameType.OPTIONS && game_type != GameType.ABOUT
+                    && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel) return;
             RemoveInGameStats();
-            LayoutRoot.Children.Add(TitlePanel);
+            if (game_type == GameType.OPTIONS || game_type == GameType.ABOUT)
+            {
+                ContentPanel.Children.Add(mainCanvas);
+                LayoutRoot.Children.Remove(OptionsPanel);
+                CheckBox_Checked(sender, e);
+            }
+            else
+                LayoutRoot.Children.Add(TitlePanel);
+            PageTitle.Text = "Checkers";
             ContentPanel.Children.Add(singleplayer);
             ContentPanel.Children.Add(multiplayer_local);
             ContentPanel.Children.Add(multiplayer_online);
+            ContentPanel.Children.Add(options);
+            ContentPanel.Children.Add(about);
             game_type = GameType.OUT_OF_GAME;
+            rotated = false;
+            resetBoard();
             scramble();
+        }
+        private void Show_Options(object sender, RoutedEventArgs e)
+        {
+            game_type = GameType.OPTIONS;
+            PageTitle.Text = "Options";
+            ClearMenu();
+            LayoutRoot.Children.Add(TitlePanel);
+            LayoutRoot.Children.Add(OptionsPanel);
+            ContentPanel.Children.Remove(mainCanvas);
+            ContentPanel.Children.Add(quit);
+        }
+        private void Show_About(object sender, RoutedEventArgs e)
+        {
+            game_type = GameType.ABOUT;
+            PageTitle.Text = "About";
+            ClearMenu();
+            LayoutRoot.Children.Add(TitlePanel);
+            ContentPanel.Children.Remove(mainCanvas);
+            ContentPanel.Children.Add(quit);
         }
         private void resetBoard()
         {
@@ -230,6 +267,8 @@ namespace FriendlyCheckers
                 }
             }
             createPieces();
+            Moves.Text = "Moves: 0";
+            WhoseTurn.Text = "Black to move next.";
         }
         private static void rotateBoard180()
         {
@@ -251,7 +290,6 @@ namespace FriendlyCheckers
         {
             return game_type;
         }
-
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
@@ -282,7 +320,8 @@ namespace FriendlyCheckers
         {
             local_multi_turn_timer.Stop();
             WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
-            if (game_type == GameType.LOCAL_MULTI)
+            Moves.Text = "Moves: "+logic.getMoveNumber();
+            if (!TABLE_STYLE && game_type == GameType.LOCAL_MULTI)
                 rotateBoard180();
             wait_for_timer = false;
         }
@@ -347,6 +386,12 @@ namespace FriendlyCheckers
                 HIGHLIGHTED_PIECE = c;
                 HIGHLIGHTED_PIECE.toggleHighlight();
             }
+        }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            FORCE_JUMP = (Op_ForceJump.IsChecked == true);
+            TABLE_STYLE = (Op_Rotate.IsChecked==true);
         }
     }
     public class BoardSpace
