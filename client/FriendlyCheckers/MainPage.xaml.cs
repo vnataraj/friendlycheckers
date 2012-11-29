@@ -45,11 +45,9 @@ namespace FriendlyCheckers
             shade.R = shade.G = shade.B = 0;
             shade.A = 150;
             Shader.Fill = new SolidColorBrush(shade);
-            ContentPanel.Children.Remove(Shader);
-
             local_multi_turn_timer = new DispatcherTimer();
             local_multi_turn_timer.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
-            local_multi_turn_timer.Interval = new TimeSpan(1000);  // Timer will tick in 600 milliseconds. THis is the wait between moves.
+            local_multi_turn_timer.Interval = new TimeSpan(0, 0, 0, 0, 800);  // Timer will tick in 800 milliseconds. This is the wait between moves.
 
             InitializeColors();
             RemoveInGameStats();
@@ -141,6 +139,7 @@ namespace FriendlyCheckers
             HiddenPanel.Children.Remove(Moves);
             HiddenPanel.Children.Remove(Versus);
             ContentPanel.Children.Remove(quit);
+            ContentPanel.Children.Remove(WhoseTurn);
             ContentPanel.Children.Remove(Shader);
             ContentPanel.Children.Remove(Search);
         }
@@ -150,6 +149,7 @@ namespace FriendlyCheckers
             HiddenPanel.Children.Add(Timer);
             HiddenPanel.Children.Add(Moves);
             ContentPanel.Children.Add(quit);
+            ContentPanel.Children.Add(WhoseTurn);
         }
         private void scramble()
         {
@@ -235,7 +235,6 @@ namespace FriendlyCheckers
             {
                 for (int i = 0; i < row_W; i++)
                 {
-                    //spaces[i, k].setColor(spaces[i,k].getColor().Equals(Sand)?Brown:Sand);
                     if (pieces[i, k] == null) continue;
                     Checker c = pieces[i, k];
                     if (!rotated)
@@ -266,7 +265,6 @@ namespace FriendlyCheckers
 
                 // Unhighlight the selected piece
                 handleHighlighting(HIGHLIGHTED_PIECE);
-               // MessageBox.Show("From [" + locY + ", " + locX + "]  to [" + bs.getY() + ", " + bs.getX() + "]");
                 m = logic.makeMove(locY, locX, (!rotated ? bs.getY() : (row_W - bs.getY() - 1)), (!rotated ? bs.getX() : (row_W - bs.getX() - 1)));
                 handleMove(m);
 
@@ -278,10 +276,10 @@ namespace FriendlyCheckers
             catch (GameLogicException) { MessageBox.Show("A logic exception has occurred."); }
             HIGHLIGHTED_PIECE = null;
         }
-        private static void timerTick(object o, EventArgs sender)
+        private void timerTick(object o, EventArgs sender)
         {
             local_multi_turn_timer.Stop();
-            MessageBox.Show((logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.");
+            WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
             if (game_type == GameType.LOCAL_MULTI)
                 rotateBoard180();
             wait_for_timer = false;
@@ -327,6 +325,8 @@ namespace FriendlyCheckers
         public static void handleHighlighting(Checker c)
         {
             if (wait_for_timer) return;
+            if (!logic.isSelectable(c.getY(),c.getX()))return;
+
             if(HIGHLIGHTED_PIECE!=null)
                 HIGHLIGHTED_PIECE.toggleHighlight();
 
