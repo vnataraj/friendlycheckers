@@ -520,20 +520,4 @@ namespace FriendlyCheckers
             MainPage.handleHighlighting(this);
         }
     }
-    public class Player
-    {
-        private PieceColor myColor;
-        private String myName;
-        public Player(String name, PieceColor color)
-        {
-            this.myName = name;
-            this.myColor = color;
-        }
-        public Player(String name): this(name, PieceColor.BLACK){}
-        public Player() : this("Player", PieceColor.BLACK) { }
-        public void setName(String name) { this.myName = name; }
-        public void setColor(PieceColor color) { this.myColor = color; }
-        public String getName() { return myName; }
-        public PieceColor getColor() { return myColor; }
-    }
 }
