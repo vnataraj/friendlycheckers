@@ -27,7 +27,7 @@ namespace FriendlyCheckers
         private static int checkerX, checkerY;
         public static int w = 400, h = 400;
         private static Canvas mainCanvas;
-        private static Boolean FORCE_JUMP = false, TABLE_STYLE = false, DIFFICULT = false;
+        private static Boolean FORCE_JUMP = false, ROTATE = false, DIFFICULT = false;
         private static GameLogic logic;
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
@@ -60,6 +60,7 @@ namespace FriendlyCheckers
             TURN_TIMER = new DispatcherTimer();
             TURN_TIMER.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800);  // Timer will tick in 800 milliseconds. This is the wait between moves.
+            Op_DiffEasy.IsChecked = true;
 
             InitializeColors();
             RemoveInGameStats();
@@ -69,7 +70,7 @@ namespace FriendlyCheckers
             ContentPanel.Children.Add(mainCanvas);
             createBoard();
             createPieces();
-            scramble();
+            rotateBoard90();
         }
         private void InitializeColors()
         {
@@ -166,36 +167,6 @@ namespace FriendlyCheckers
             ContentPanel.Children.Add(quit);
             ContentPanel.Children.Add(WhoseTurn);
         }
-        private void scramble()
-        {
-            for (int k = 0; k < 1000; k++)
-            {
-                Random rand = new Random();
-                int row1 = rand.Next(0, row_W);
-                int col1 = rand.Next(0, row_W);
-                int row2 = rand.Next(0, row_W);
-                int col2 = rand.Next(0, row_W);
-                move(row1, col1, row2, col2);
-            }
-        }
-        private bool validMove(int x1, int y1, int x2, int y2)
-        {
-            if (x1 > row_W || x2 > row_W || y1 > row_W || y2 > row_W) return false;
-            if (pieces[x1, y1] == null) return false;
-            if (pieces[x2, y2] != null) return false;
-
-            return true;
-        }
-        private void move(int x1, int y1, int x2, int y2)
-        {
-            if (!validMove(x1, y1, x2, y2)) return;
-
-            Checker temp = delete(x1, y1);
-            pieces[x2, y2] = new Checker(x2, y2, temp.getColor(),temp.getBG());
-
-            mainCanvas.Children.Add(pieces[x2, y2].getEl2());
-            mainCanvas.Children.Add(pieces[x2, y2].getEl1());
-        }
         private void SinglePlayer_Setup(object sender, RoutedEventArgs e)
         {
             game_type = GameType.SINGLE_PLAYER;
@@ -209,7 +180,7 @@ namespace FriendlyCheckers
         private void Local_Multi_Setup(object sender, RoutedEventArgs e)
         {
             game_type = GameType.LOCAL_MULTI;
-            if(!TABLE_STYLE)
+            if(ROTATE)
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 
             else
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
@@ -251,12 +222,14 @@ namespace FriendlyCheckers
             ContentPanel.Children.Add(options);
             ContentPanel.Children.Add(about);
             game_type = GameType.OUT_OF_GAME;
-            checkerX = checkerY = -1;
+            wait_for_computer = false;
+            wait_for_timer = false;
             rotated = false;
+            checkerX = checkerY = -1;
             GAME_TIME = 0;
             Timer.Text = "Time: 0:00";
             resetBoard();
-            scramble();
+            rotateBoard90();
         }
         private void Show_Options(object sender, RoutedEventArgs e)
         {
@@ -308,6 +281,21 @@ namespace FriendlyCheckers
             }
             rotated = !rotated;
         }
+        private static void rotateBoard90()
+        {
+            for (int k = 0; k < row_W; k++)
+            {
+                for (int i = 0; i < row_W; i++)
+                {
+                    if (pieces[i, k] == null) continue;
+                    Checker c = pieces[i, k];
+                    if (!rotated)
+                        c.rotate(c.getX(), c.getY());
+                    else
+                        c.rotate(c.getY(), c.getX());
+                }
+            }
+        }
         public GameType getGameType()
         {
             return game_type;
@@ -335,7 +323,7 @@ namespace FriendlyCheckers
                 wait_for_timer = true;
             }
             catch (PieceWrongColorException) { MessageBox.Show("You cannot move your opponent's pieces!"); }
-            catch (InvalidMoveException) { MessageBox.Show("Invalid move."); }
+            catch (InvalidMoveException) { }
             catch (GameLogicException) { MessageBox.Show("A logic exception has occurred."); }
             checkerX = checkerY = -1;
         }
@@ -345,7 +333,7 @@ namespace FriendlyCheckers
             WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
             Moves.Text = "Moves: "+logic.getMoveNumber();
             wait_for_timer = false;
-            if (!TABLE_STYLE && game_type == GameType.LOCAL_MULTI)
+            if (ROTATE && game_type == GameType.LOCAL_MULTI)
                 rotateBoard180();
             else if (game_type == GameType.SINGLE_PLAYER)
             {
@@ -436,7 +424,7 @@ namespace FriendlyCheckers
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
             FORCE_JUMP = (Op_ForceJump.IsChecked == true);
-            TABLE_STYLE = (Op_Rotate.IsChecked == true);
+            ROTATE = (Op_Rotate.IsChecked == true);
             if(sender.Equals(Op_DiffHard))
                 DIFFICULT = (Op_DiffHard.IsChecked == true);
             else
@@ -444,7 +432,7 @@ namespace FriendlyCheckers
             Op_DiffHard.IsChecked = DIFFICULT;
             Op_DiffEasy.IsChecked = !DIFFICULT;
 
-            if (TABLE_STYLE || game_type != GameType.LOCAL_MULTI)
+            if (!ROTATE || game_type != GameType.LOCAL_MULTI)
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             else
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 

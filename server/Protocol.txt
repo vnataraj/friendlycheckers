@@ -5,7 +5,7 @@ List of message:
 Enter into Queue: 			QueueMatch
 Request game w/other user: 	RequestMatch
 Sync matches with server: 	SyncMatches
-Perform move: 				Move
+Perform move: 				RecordMove
 Poll:						Poll
 Login:						Login
 
@@ -41,7 +41,7 @@ PollMatch {
 }
 
 // Send a move to the server
-Move {
+RecordMove {
 	UserID=<user_id>
 	MatchID=<match_id>
 	MoveNumber=<move_number>
@@ -110,3 +110,6 @@ Failure Messages:
 666.666 {
 	Unknown Error
 }
+
+
+
