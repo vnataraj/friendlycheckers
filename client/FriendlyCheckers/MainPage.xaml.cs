@@ -209,7 +209,10 @@ namespace FriendlyCheckers
         private void Local_Multi_Setup(object sender, RoutedEventArgs e)
         {
             game_type = GameType.LOCAL_MULTI;
-            TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 
+            if(!TABLE_STYLE)
+                TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 
+            else
+                TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             ClearMenu();
             Versus.Text = "Player 1 vs. Player 2";
             AddInGameStats();
