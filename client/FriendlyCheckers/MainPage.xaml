@@ -48,8 +48,12 @@
             <TextBlock x:Name="Search" Text="Searching for Opponents..." FontSize="32" Style="{StaticResource PhoneTextNormalStyle}" Height="56" Margin="0,206,29,397" HorizontalAlignment="Right" Width="376" />
         </Grid>
         <StackPanel Name ="OptionsPanel" Margin="0,139,0,74" Grid.RowSpan="2">
-            <CheckBox Name="Op_Rotate" Checked="CheckBox_Checked">Play local multiplayer "table style"</CheckBox>
-            <CheckBox Name="Op_ForceJump" Checked="CheckBox_Checked">Force jumps</CheckBox>
+            <TextBlock x:Name="GameOptions" Text="Gameplay:" FontSize="28" Margin ="-10,20,10,0" Style="{StaticResource PhoneTextNormalStyle}" Height="40" HorizontalAlignment="Right" Width="454" />
+            <CheckBox Name="Op_Rotate" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked" Margin="10,-5,-10,0">Play local multiplayer "table style"</CheckBox>
+            <CheckBox Name="Op_ForceJump" Checked="CheckBox_Checked"  Unchecked="CheckBox_Checked" Margin="10,-5,-10,0">Force jumps</CheckBox>
+            <TextBlock x:Name="Difficulty" Text="Computer player difficulty:" FontSize="28" Margin ="-10,20,10,0" Style="{StaticResource PhoneTextNormalStyle}" Height="40" HorizontalAlignment="Right" Width="454" />
+            <CheckBox Name="Op_DiffHard" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked" Height="69" Width="482" Margin="10,-5,-10,0">Expert</CheckBox>
+            <CheckBox Name="Op_DiffEasy" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked" Height="69" Width="486" Margin="10,-5,-10,0">Novice</CheckBox>
         </StackPanel>
         <StackPanel Name ="AboutPanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <TextBlock x:Name="GameInfo" TextWrapping="Wrap" Text="FriendlyCheckers was the joint effort of four people working on four components of the game:" FontSize="24" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="157" Width="447" />

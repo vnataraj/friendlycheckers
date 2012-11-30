@@ -24,16 +24,17 @@ namespace FriendlyCheckers
         private static Color Brown;
         private static Color Sand;
 
-        public static Checker HIGHLIGHTED_PIECE;
+        private static int checkerX, checkerY;
         public static int w = 400, h = 400;
         private static Canvas mainCanvas;
-        private static Boolean FORCE_JUMP = false, TABLE_STYLE = false;
+        private static Boolean FORCE_JUMP = false, TABLE_STYLE = false, DIFFICULT = false;
         private static GameLogic logic;
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
+        private Player computerPlayer;
 
         private static Boolean rotated = false;
-        private static Boolean wait_for_timer = false;
+        private static Boolean wait_for_timer = false, wait_for_computer = false;
         private static int row_W = 8;
         private static DispatcherTimer TURN_TIMER, GAME_TIMER;
         public enum GameType { OUT_OF_GAME, OPTIONS, ABOUT, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
@@ -45,6 +46,8 @@ namespace FriendlyCheckers
             InitializeComponent();
             LayoutRoot.Children.Remove(OptionsPanel);
             LayoutRoot.Children.Remove(AboutPanel);
+            checkerX = checkerY = -1;
+            computerPlayer = new Player("Computer", PieceColor.RED);
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -235,7 +238,6 @@ namespace FriendlyCheckers
                 ContentPanel.Children.Add(mainCanvas);
                 LayoutRoot.Children.Remove(OptionsPanel);
                 LayoutRoot.Children.Remove(AboutPanel);
-                CheckBox_Checked(sender, e);
             }
             else
                 LayoutRoot.Children.Add(TitlePanel);
@@ -246,6 +248,7 @@ namespace FriendlyCheckers
             ContentPanel.Children.Add(options);
             ContentPanel.Children.Add(about);
             game_type = GameType.OUT_OF_GAME;
+            checkerX = checkerY = -1;
             rotated = false;
             GAME_TIME = 0;
             Timer.Text = "Time: 0:00";
@@ -306,22 +309,23 @@ namespace FriendlyCheckers
         {
             return game_type;
         }
+        
+        
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
-        public static void MakeMove(BoardSpace bs)
+        public static void MakeMove(int boardX, int boardY)
         {
-            if (wait_for_timer) return;
-            if (game_type == GameType.OUT_OF_GAME || HIGHLIGHTED_PIECE == null) return;
+            if (wait_for_timer || wait_for_computer) return;
+            if (game_type == GameType.OUT_OF_GAME || (checkerX == -1 && checkerY == -1)) return;
             Move m;
             try
             {
-                int locX = HIGHLIGHTED_PIECE.getX();
-                int locY = HIGHLIGHTED_PIECE.getY();
-
+                int locX = checkerX;
+                int locY = checkerY;
                 // Unhighlight the selected piece
-                handleHighlighting(HIGHLIGHTED_PIECE);
-                m = logic.makeMove(locY, locX, (!rotated ? bs.getY() : (row_W - bs.getY() - 1)), (!rotated ? bs.getX() : (row_W - bs.getX() - 1)));
+                handleHighlighting(checkerX,checkerY);
+                m = logic.makeMove(locY, locX, (!rotated ? boardY : (row_W - boardY - 1)), (!rotated ? boardX : (row_W - boardX - 1)));
                 handleMove(m);
 
                 TURN_TIMER.Start();
@@ -330,16 +334,31 @@ namespace FriendlyCheckers
             catch (PieceWrongColorException) { MessageBox.Show("You cannot move your opponent's pieces!"); }
             catch (InvalidMoveException) { MessageBox.Show("Invalid move."); }
             catch (GameLogicException) { MessageBox.Show("A logic exception has occurred."); }
-            HIGHLIGHTED_PIECE = null;
+            checkerX = checkerY = -1;
         }
         private void timerTick(object o, EventArgs sender)
         {
             TURN_TIMER.Stop();
             WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
             Moves.Text = "Moves: "+logic.getMoveNumber();
+            wait_for_timer = false;
             if (!TABLE_STYLE && game_type == GameType.LOCAL_MULTI)
                 rotateBoard180();
-            wait_for_timer = false;
+            else if (game_type == GameType.SINGLE_PLAYER)
+            {
+                wait_for_computer = !wait_for_computer;
+                if (wait_for_computer)
+                {
+                    //Move m
+                    //if(DIFFICULT)
+                    //  m = computerPlayer.getHardMove(logic, pieces); 
+                    //else
+                    //  m = computerPlayer.getEasyMove(logic, pieces);
+                   // handleMove(m);
+                   // TURN_TIMER.Start();
+                   // wait_for_timer = true;
+                }
+            }
         }
         private void gameTimerTick(object o, EventArgs sender)
         {
@@ -389,33 +408,39 @@ namespace FriendlyCheckers
 
             return temp;
         }
-        // The highlighted piece is also the selected piece.
-        // Ie, checkerX = HIGHLIGHTED_PIECE.getX(), and checkerY = HIGHLIGHTED_PIECE.getY()
-        public static void handleHighlighting(Checker c)
+        public static void handleHighlighting(int x, int y)
         {
-            if (wait_for_timer) return;
-            if (!logic.isSelectable(c.getY(),c.getX()))return;
+            if (wait_for_timer || wait_for_computer) return;
+            if (!logic.isSelectable(y,x))return;
 
-            if(HIGHLIGHTED_PIECE!=null)
-                HIGHLIGHTED_PIECE.toggleHighlight();
+            Checker HIGHLIGHTED_PIECE = pieces[x, y];
+            if (checkerX != -1 && checkerY != -1)
+                pieces[checkerX, checkerY].toggleHighlight();
 
-            //if the alrady highlighted piece is the same as the one being clicked
-            if (HIGHLIGHTED_PIECE!=null && HIGHLIGHTED_PIECE.Equals(c)) 
+            //if the already highlighted piece is the same as the one being clicked
+            if (checkerX!=-1 && checkerY!=-1 && HIGHLIGHTED_PIECE.Equals(pieces[checkerX,checkerY])) 
             {
-                HIGHLIGHTED_PIECE = null;
+                checkerX = checkerY = -1;
                 return;
             }
             else //otherwise, a piece is either being clicked for the first time or is switching highlights.
             {
-                HIGHLIGHTED_PIECE = c;
+                checkerX = x;
+                checkerY = y;
                 HIGHLIGHTED_PIECE.toggleHighlight();
             }
         }
-
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
             FORCE_JUMP = (Op_ForceJump.IsChecked == true);
-            TABLE_STYLE = (Op_Rotate.IsChecked==true);
+            TABLE_STYLE = (Op_Rotate.IsChecked == true);
+            if(sender.Equals(Op_DiffHard))
+                DIFFICULT = (Op_DiffHard.IsChecked == true);
+            else
+                DIFFICULT = (Op_DiffEasy.IsChecked == false);
+            Op_DiffHard.IsChecked = DIFFICULT;
+            Op_DiffEasy.IsChecked = !DIFFICULT;
+
             if (TABLE_STYLE || game_type != GameType.LOCAL_MULTI)
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             else
@@ -457,7 +482,7 @@ namespace FriendlyCheckers
         }
         private void Space_Action(object o, MouseButtonEventArgs e)
         {
-            MainPage.MakeMove(this);
+            MainPage.MakeMove(gridx,gridy);
         }
     }
     public class Checker
@@ -538,7 +563,7 @@ namespace FriendlyCheckers
         private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
-            MainPage.handleHighlighting(this);
+            MainPage.handleHighlighting(x,y);
         }
     }
 }
