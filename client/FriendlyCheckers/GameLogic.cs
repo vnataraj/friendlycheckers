@@ -20,6 +20,7 @@ namespace FriendlyCheckers {
     public class UnreachableCodeException : GameLogicException { }
     public class CellOutOfBoundsException : GameLogicException { }
     public class InvalidMoveException : GameLogicException { }
+    public class PlayerMustJumpException : GameLogicException { }
     public class BadMoveNumberException : GameLogicException { }
 
     public enum PieceColor {RED, BLACK};
@@ -252,6 +253,7 @@ namespace FriendlyCheckers {
     public class GameLogic {
         Board board; 
         int moveNumber;
+        bool forceJumps; 
 
         static Vector [] kingMoves = new Vector[4]{new Vector(1,1), new Vector(1,-1), new Vector(-1,-1), new Vector(-1,1)}; // kings move anywhere
         static Vector [] blackMoves = new Vector[2]{new Vector(-1,1), new Vector(-1,-1)}; // black moves up
@@ -307,7 +309,11 @@ namespace FriendlyCheckers {
             return moveNumber;
         }
 
-        public GameLogic(int boardWidth, int boardHeight) {
+        public GameLogic(int boardWidth, int boardHeight) : this 
+            (boardWidth, boardHeight, false){}
+
+        public GameLogic(int boardWidth, int boardHeight, bool forceJumps) {
+            this.forceJumps = forceJumps; 
             this.board = new Board(boardWidth, boardHeight);
             moveNumber = 0;
         }
@@ -400,6 +406,38 @@ namespace FriendlyCheckers {
             return newP; 
         }
 
+        private List<Vector> getDoableJumps(Piece p) { 
+            Vector[] jumps = getPossibleJumps(p.getColor(), p.getType());
+            List<Vector> doable = new List<Vector>();
+
+            foreach (Vector jump in jumps) {
+                Vector endLoc = jump.add(p.getCoordinates());
+                Piece endP = board.getCellContents(endLoc);
+                if (endP != null) {
+                    continue;
+                }
+                Vector middleLoc = p.getCoordinates().add(jump.divideVector(2));
+                Piece middleP = board.getCellContents(middleLoc);
+                if (middleP == null) {
+                    continue;
+                }
+                if (middleP.getColor() == p.getColor()) {
+                    continue;
+                }
+                doable.Add(new Vector(jump)); 
+            }
+
+            return doable; 
+        }
+
+            }
+
+
+
+            
+            
+        }
+
         private Move getMove(int yStart, int xStart, int yEnd, int xEnd){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
@@ -418,6 +456,8 @@ namespace FriendlyCheckers {
             if(start.getColor() != whoseMove()){ 
                 throw new PieceWrongColorException(); 
             }
+
+            //jump logic goes here
 
             Vector myMove = new Vector(yEnd - yStart, xEnd - xStart);
             System.Diagnostics.Debug.WriteLine("myMove is " + myMove.ToString()); 
