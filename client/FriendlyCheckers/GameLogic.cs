@@ -21,35 +21,12 @@ namespace FriendlyCheckers {
     public class CellOutOfBoundsException : GameLogicException { }
     public class InvalidMoveException : GameLogicException { }
     public class PlayerMustJumpException : InvalidMoveException { }
+    public class WrongMultiJumpPieceException : InvalidMoveException {} 
     public class BadMoveNumberException : GameLogicException { }
 
     public enum PieceColor {RED, BLACK};
     public enum PieceType {REGULAR, KING};
     public enum GameStatus {NOWINNER, REDWINS, BLACKWINS}; 
-    
-    public class UserGame { 
-        int gameID; 
-        int matchID; 
-        string username; 
-
-        public UserGame(int gameID, int matchID, string username) { 
-            this.gameID = gameID; 
-            this.matchID = matchID; 
-            this.username = username; 
-        }
-
-        public int getGameID(){ 
-            return gameID; 
-        } 
-
-        public int getMatchID(){ 
-            return matchID;
-        }
-
-        public string getUsername(){
-            return username; 
-        }
-    }
 
     public class Move { // this is the api to give data to networking (and maybe GUI)
         int moveNumber;
@@ -251,7 +228,9 @@ namespace FriendlyCheckers {
     public class GameLogic {
         Board board; 
         int moveNumber;
-        bool forceJumps; 
+        bool forceJumps;
+
+        Vector multiJumpLoc = null; 
 
         static Vector [] kingMoves = new Vector[4]{new Vector(1,1), new Vector(1,-1), new Vector(-1,-1), new Vector(-1,1)}; // kings move anywhere
         static Vector [] blackMoves = new Vector[2]{new Vector(-1,1), new Vector(-1,-1)}; // black moves up
@@ -357,9 +336,11 @@ namespace FriendlyCheckers {
 
             doMove(myMove);
             if (myMove.getRemovals().Count == 2 && getDoableJumps(myMove.getAdditions()[0]).Count != 0) {
+                this.multiJumpLoc = myMove.getAdditions()[0].getCoordinates(); 
                 //don't change movenumber
             } else {
-                moveNumber++;
+                this.moveNumber++;
+                this.multiJumpLoc = null; 
             }
 
             return myMove;
@@ -394,6 +375,14 @@ namespace FriendlyCheckers {
                 return PieceColor.RED;
             } else {
                 return PieceColor.BLACK;
+            }
+        }
+
+        public void skipMultiJump() {
+            if (this.forceJumps) {
+                throw new PlayerMustJumpException();
+            } else {
+                moveNumber++;
             }
         }
 
@@ -450,6 +439,14 @@ namespace FriendlyCheckers {
             List<Piece> additions = new List<Piece>(); 
 
             Piece start = board.getCellContents(yStart, xStart);
+
+            if(multiJumpLoc != null) { 
+                if(multiJumpLoc.Equals(start.getCoordinates())) { 
+                } else {
+                    throw new WrongMultiJumpPieceException();
+                }
+            }
+
             System.Diagnostics.Debug.WriteLine("start vector is " + start.getCoordinates().ToString()); 
             Piece end = board.getCellContents(yEnd, xEnd);
             Vector endLoc = new Vector(yEnd, xEnd); 
