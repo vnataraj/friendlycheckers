@@ -89,6 +89,12 @@ namespace FriendlyCheckers {
             return new Vector(this.y + move.y, 
                 this.x + move.x);
         }
+
+        public Vector subtract(Vector move) {
+            return new Vector(this.y - move.y,
+                this.x - move.x);
+        }
+
         public Vector divideVector(int divisor) {
             return new Vector(this.getY() / divisor, this.getX() / divisor);
         }
@@ -331,11 +337,27 @@ namespace FriendlyCheckers {
         }
 
         public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
+            Piece start = board.getCellContents(yStart, xStart);
+            Piece end = board.getCellContents(yEnd, xEnd);
+
+            if (start == null) { //there is no piece here
+                throw new CellEmptyException();
+            }
+            if (end != null) {
+                throw new CellFullException();
+            }
+            if (start.getColor() != whoseMove()) {
+                throw new PieceWrongColorException();
+            }
+
+            PieceType originalPieceType = start.getType(); 
+
             System.Diagnostics.Debug.WriteLine("makeMove called"); 
-            Move myMove = getMove(yStart, xStart, yEnd, xEnd);
+            Move myMove = getMove(start, yEnd, xEnd);
 
             doMove(myMove);
-            if (myMove.getRemovals().Count == 2 && getDoableJumps(myMove.getAdditions()[0]).Count != 0) {
+            Piece add = myMove.getAdditions()[0]; 
+            if (originalPieceType == add.getType() && myMove.getRemovals().Count == 2 && getDoableJumps(add).Count != 0) {
                 this.multiJumpLoc = myMove.getAdditions()[0].getCoordinates(); 
                 //don't change movenumber
             } else {
@@ -434,11 +456,11 @@ namespace FriendlyCheckers {
             return doable; 
         }
 
-        private Move getMove(int yStart, int xStart, int yEnd, int xEnd){
+        private Move getMove(Piece start, int yEnd, int xEnd){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
 
-            Piece start = board.getCellContents(yStart, xStart);
+
 
             if(multiJumpLoc != null) { 
                 if(multiJumpLoc.Equals(start.getCoordinates())) { 
@@ -447,21 +469,14 @@ namespace FriendlyCheckers {
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine("start vector is " + start.getCoordinates().ToString()); 
-            Piece end = board.getCellContents(yEnd, xEnd);
-            Vector endLoc = new Vector(yEnd, xEnd); 
-  
-            if(start == null) { //there is no piece here
-                throw new CellEmptyException(); 
-            }
-            if(end != null) { 
-                throw new CellFullException();
-            }
-            if(start.getColor() != whoseMove()){ 
-                throw new PieceWrongColorException(); 
-            }
+            System.Diagnostics.Debug.WriteLine("start vector is " + start.getCoordinates().ToString());
 
-            Vector myMove = new Vector(yEnd - yStart, xEnd - xStart);
+            Vector startLoc = start.getCoordinates();
+            Vector endLoc = new Vector(yEnd, xEnd);  
+  
+
+
+            Vector myMove = endLoc.subtract(startLoc);
 
             //jump logic goes here
             if (this.forceJumps) {
