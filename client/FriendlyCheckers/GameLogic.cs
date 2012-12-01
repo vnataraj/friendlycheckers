@@ -35,12 +35,19 @@ namespace FriendlyCheckers {
         int moveNumber;
         List<Piece> removals;
         List<Piece> additions;
+        PieceColor player; 
         
-        public Move(int moveNumber, List<Piece> removals, List<Piece> additions) {
+        public Move(int moveNumber, List<Piece> removals, List<Piece> additions, PieceColor player) {
             this.moveNumber = moveNumber;
             this.removals = removals;
             this.additions = additions;
+            this.player = player; 
         }
+
+        public PieceColor getPlayer() { 
+            return this.player; 
+        }
+
         public int getMoveNumber() {
             return moveNumber;
         }
@@ -247,12 +254,15 @@ namespace FriendlyCheckers {
         }
     }
 
+    //TODO: implement turnNumber versus moveNumber
     public class GameLogic {
         Board board; 
         int moveNumber;
         bool forceJumps;
         int blackPieces = 0;
         int redPieces = 0; 
+        int turnNumber = 0; 
+        List<Move> movesMade; 
 
         Vector multiJumpLoc = null; 
 
@@ -310,6 +320,10 @@ namespace FriendlyCheckers {
             return moveNumber;
         }
 
+        public int getTurnNumber() { 
+            return turnNumber; 
+        }
+
         public GameLogic(int boardHeight, int boardWidth) : this 
             (boardHeight, boardWidth, false){}
 
@@ -317,6 +331,8 @@ namespace FriendlyCheckers {
             this.forceJumps = forceJumps; 
             this.board = new Board(boardWidth, boardHeight);
             moveNumber = 0;
+            turnNumber = 0;
+            movesMade = new List<Move>(); 
         }
 
         public GameLogic(GameLogic g) { //does a deep copy of GameLogic
@@ -326,6 +342,7 @@ namespace FriendlyCheckers {
             this.blackPieces = g.blackPieces;
             this.redPieces = g.redPieces;
             this.multiJumpLoc = new Vector(g.multiJumpLoc);
+            this.turnNumber = g.turnNumber; 
         }
 
         public Board getBoardCopy() {
@@ -397,31 +414,50 @@ namespace FriendlyCheckers {
             PieceType originalPieceType = start.getType(); 
 
             System.Diagnostics.Debug.WriteLine("makeMove called"); 
-            Move myMove = getMove(start, yEnd, xEnd);
+            Move myMove = getMove(start, yEnd, xEnd, this.whoseMove());
 
             doMove(myMove);
             Piece add = myMove.getAdditions()[0]; 
             if (originalPieceType == add.getType() && myMove.getRemovals().Count == 2 && getDoableJumps(add).Count != 0) {
                 this.multiJumpLoc = myMove.getAdditions()[0].getCoordinates(); 
-                //don't change movenumber
+                //don't change turnNumber
             } else {
-                this.moveNumber++;
+                this.turnNumber++;
                 this.multiJumpLoc = null; 
             }
+            this.moveNumber++;
 
             return myMove;
         }
 
         private void doMove(Move move) {
-                foreach (Piece removal in move.getRemovals()) {
-                    removePiece(removal); 
+            movesMade.Add(move); 
+            foreach (Piece removal in move.getRemovals()) {
+                removePiece(removal); 
+            }
+            foreach (Piece addition in move.getAdditions()) {
+                addPiece(addition);
+            }
+        }
+
+        public List<Move> getMovesMade() { 
+            return this.movesMade; 
+        }
+
+        public void makeMoves(List<Move> moves) { 
+            PieceColor lastMoveColor = whoseMove(); 
+            foreach(Move move in moves) { 
+                if(move.getPlayer() != lastMoveColor) { 
+                    turnNumber++; 
+                    lastMoveColor = move.getPlayer(); 
                 }
-                foreach (Piece addition in move.getAdditions()) {
-                    addPiece(addition);
-                }
+                moveNumber++; 
+                doMove(move); 
+            }
         }
 
 
+#if false
         private void undoMove(Move move) {
             if (move.getMoveNumber() == moveNumber - 1) {
                 foreach (Piece addition in move.getAdditions()) { //add removals
@@ -430,14 +466,15 @@ namespace FriendlyCheckers {
                 foreach (Piece removal in move.getRemovals()) { //remove additions
                     board.addPieceToCell(removal);
                 }
-                moveNumber--;
+                turnNumber--;
             } else {
                 throw new BadMoveNumberException();
             }
-        }
+        } 
+#endif
 
         public PieceColor whoseMove() {
-            if (moveNumber % 2 == 1) {
+            if (turnNumber % 2 == 1) {
                 return PieceColor.RED;
             } else {
                 return PieceColor.BLACK;
@@ -448,7 +485,7 @@ namespace FriendlyCheckers {
             if (this.forceJumps) {
                 throw new PlayerMustJumpException();
             } else {
-                moveNumber++;
+                turnNumber++;
             }
         }
 
@@ -543,6 +580,9 @@ namespace FriendlyCheckers {
             return doable; 
         }
 
+        //TODO
+        //public getAnyDoableMove
+
         private bool canMoveSomewhere() {
             PieceColor jumperColor = this.whoseMove();
             for (int y = 0; y < board.getHeight(); y++) {
@@ -589,7 +629,7 @@ namespace FriendlyCheckers {
             return (Math.Abs(start.getX() - xEnd) == 2 && Math.Abs(start.getY() - yEnd) == 2);
         }
 
-        private Move getMove(Piece start, int yEnd, int xEnd){
+        private Move getMove(Piece start, int yEnd, int xEnd, PieceColor player){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
 
@@ -671,8 +711,8 @@ namespace FriendlyCheckers {
                 System.Diagnostics.Debug.WriteLine("Could not find match vector");
                 throw new InvalidMoveException();
             }
-            int myMoveNumber = moveNumber + 1; 
-            return new Move(myMoveNumber, removals, additions); 
+            int myTurnNumber = turnNumber + 1; 
+            return new Move(myTurnNumber, removals, additions, player); 
         }
     }
 }
