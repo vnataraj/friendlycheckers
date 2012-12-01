@@ -191,7 +191,7 @@ namespace FriendlyCheckers
         }
         private Boolean MenuState()
         {
-            return (game_state == GameState.CREDS || game_state == GameState.ABOUT || game_state == GameState.OPTIONS);
+            return (game_state == GameState.CREDS || game_state == GameState.ABOUT || game_state == GameState.OPTIONS || game_state == GameState.SAVE_GAME);
         }
         private void Online_Multi_Setup(object sender, RoutedEventArgs e)
         {

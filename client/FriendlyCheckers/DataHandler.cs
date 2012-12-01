@@ -48,6 +48,16 @@ namespace FriendlyCheckers
             while (!SR.EndOfStream)
                 result += SR.ReadLine();
         }
+        public void setCreds(String username, String password)
+        {
+            if (username.Equals("") || password.Equals("")) return;
+            this.username = username;
+            this.password = password;
+        }
+        public Boolean hasCreds()
+        {
+            return !(username.Equals("") && password.Equals(""));
+        }
 	}
     public class UserGame
     {
