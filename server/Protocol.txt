@@ -6,7 +6,7 @@ Enter into Queue: 			QueueMatch
 Request game w/other user: 	RequestMatch
 Sync matches with server: 	SyncMatches
 Perform move: 				RecordMove
-Poll:						Poll
+Poll:						PollMatch
 Login:						Login
 
 <server><path>?message=<message>[&
@@ -79,6 +79,10 @@ Success Messages:
 
 42.6 {
 	<match_data>[,<match_data>...]
+}
+
+42.7 {
+	Match accepted successfully
 }
 
 Failure Messages:
