@@ -38,14 +38,16 @@ namespace FriendlyCheckers
         private static Boolean wait_for_timer = false, wait_for_computer = false;
         private static int row_W = 8;
         private static DispatcherTimer TURN_TIMER;
-        public enum GameType { OUT_OF_GAME, OPTIONS, ABOUT, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
-        public static GameType game_type = GameType.OUT_OF_GAME;
+        public enum GameState { OUT_OF_GAME, OPTIONS, ABOUT, CREDS, SAVE_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
+        public static GameState game_state = GameState.OUT_OF_GAME;
 
         public MainPage()
         {
             InitializeComponent();
             LayoutRoot.Children.Remove(OptionsPanel);
             LayoutRoot.Children.Remove(AboutPanel);
+            LayoutRoot.Children.Remove(CredPanel);
+            LayoutRoot.Children.Remove(SaveGamePanel);
             checkerX = checkerY = -1;
             computerPlayer = new Player("Computer", PieceColor.RED);
             dataDude = new DataHandler();
@@ -108,7 +110,7 @@ namespace FriendlyCheckers
         }
         private void createPieces()
         {
-            logic = new GameLogic(row_W, row_W, FORCE_JUMP);
+            logic = new GameLogic(row_W, row_W);
             pieces = new Checker[8,8];
             int row = 0, col = 0;
             for (int k = 0; k < 24; k++)
@@ -145,12 +147,10 @@ namespace FriendlyCheckers
             ContentPanel.Children.Remove(multiplayer_online);
             ContentPanel.Children.Remove(options);
             ContentPanel.Children.Remove(about);
-            LayoutRoot.Children.Remove(TitlePanel);
         }
         private void RemoveInGameStats()
         {
-            HiddenPanel.Children.Remove(Moves);
-            HiddenPanel.Children.Remove(Versus);
+            LayoutRoot.Children.Remove(HiddenPanel);
             ContentPanel.Children.Remove(quit);
             ContentPanel.Children.Remove(WhoseTurn);
             ContentPanel.Children.Remove(Shader);
@@ -158,53 +158,82 @@ namespace FriendlyCheckers
         }
         private void AddInGameStats()
         {
-            HiddenPanel.Children.Add(Versus);
-            HiddenPanel.Children.Add(Moves);
+            LayoutRoot.Children.Add(HiddenPanel);
             ContentPanel.Children.Add(quit);
             ContentPanel.Children.Add(WhoseTurn);
         }
         private void SinglePlayer_Setup(object sender, RoutedEventArgs e)
         {
-            game_type = GameType.SINGLE_PLAYER;
+            game_state = GameState.SINGLE_PLAYER;
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             ClearMenu();
+            LayoutRoot.Children.Remove(TitlePanel);
             Versus.Text = "Player 1 vs. Computer";
             AddInGameStats();
             resetBoard();
         }
         private void Local_Multi_Setup(object sender, RoutedEventArgs e)
         {
-            game_type = GameType.LOCAL_MULTI;
+            game_state = GameState.LOCAL_MULTI;
             if(ROTATE)
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 
             else
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             ClearMenu();
+            LayoutRoot.Children.Remove(TitlePanel);
             Versus.Text = "Player 1 vs. Player 2";
             AddInGameStats();
             resetBoard();
         }
+        private Boolean InGame()
+        {
+            return (game_state == GameState.SINGLE_PLAYER || game_state==GameState.LOCAL_MULTI || game_state==GameState.ONLINE_MULTI);
+        }
+        private Boolean MenuState()
+        {
+            return (game_state == GameState.CREDS || game_state == GameState.ABOUT || game_state == GameState.OPTIONS);
+        }
         private void Online_Multi_Setup(object sender, RoutedEventArgs e)
         {
-            game_type = GameType.ONLINE_MULTI;
+            if (game_state == GameState.SAVE_GAME)
+            {
+                LayoutRoot.Children.Remove(SaveGamePanel);
+                ContentPanel.Children.Remove(quit);
+                ContentPanel.Children.Add(mainCanvas);
+            }
+            game_state = GameState.ONLINE_MULTI;
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0);
-            ClearMenu(); 
+            ClearMenu();
+            LayoutRoot.Children.Remove(TitlePanel);
             Versus.Text = "Player 1 vs. [Searching...]";
             AddInGameStats();
             resetBoard();
             ContentPanel.Children.Add(Shader);
             ContentPanel.Children.Add(Search);
         }
+        private void SaveGame_Setup(object sender, RoutedEventArgs e)
+        {
+            game_state = GameState.SAVE_GAME;
+            PageTitle.Text = "Active Games";
+            ClearMenu();
+            LayoutRoot.Children.Add(SaveGamePanel);
+            ContentPanel.Children.Remove(mainCanvas);
+            ContentPanel.Children.Add(quit);
+        }
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
-            if (game_type != GameType.OPTIONS && game_type != GameType.ABOUT
-                    && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return; 
+            if (InGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
+            if (game_state == GameState.CREDS)
+                dataDude.setCreds(UserName.Text, Password.Password);
             RemoveInGameStats();
-            if (game_type == GameType.OPTIONS || game_type == GameType.ABOUT)
+            if (MenuState())
             {
                 ContentPanel.Children.Add(mainCanvas);
                 LayoutRoot.Children.Remove(OptionsPanel);
                 LayoutRoot.Children.Remove(AboutPanel);
+                LayoutRoot.Children.Remove(CredPanel);
+                LayoutRoot.Children.Remove(SaveGamePanel);
+                quit.Content = "Quit to Menu";
             }
             else
                 LayoutRoot.Children.Add(TitlePanel);
@@ -214,7 +243,7 @@ namespace FriendlyCheckers
             ContentPanel.Children.Add(multiplayer_online);
             ContentPanel.Children.Add(options);
             ContentPanel.Children.Add(about);
-            game_type = GameType.OUT_OF_GAME;
+            game_state = GameState.OUT_OF_GAME;
             wait_for_computer = false;
             wait_for_timer = false;
             rotated = false;
@@ -224,20 +253,32 @@ namespace FriendlyCheckers
         }
         private void Show_Options(object sender, RoutedEventArgs e)
         {
-            game_type = GameType.OPTIONS;
+            game_state = GameState.OPTIONS;
+            quit.Content = "Save and Quit to Menu";
             PageTitle.Text = "Options";
             ClearMenu();
-            LayoutRoot.Children.Add(TitlePanel);
             LayoutRoot.Children.Add(OptionsPanel);
             ContentPanel.Children.Remove(mainCanvas);
             ContentPanel.Children.Add(quit);
         }
+        private void Show_Creds(object sender, RoutedEventArgs e)
+        {
+            game_state = GameState.CREDS;
+            quit.Content = "Save and Quit to Menu";
+            PageTitle.Text = "Credentials";
+            LayoutRoot.Children.Remove(OptionsPanel);
+            LayoutRoot.Children.Add(CredPanel);
+        }
+        private void NewGame_Setup(object sender, RoutedEventArgs e)
+        {
+            /// other stuff will be done, then the game will be displayed.
+            Online_Multi_Setup(sender, e);
+        }
         private void Show_About(object sender, RoutedEventArgs e)
         {
-            game_type = GameType.ABOUT;
+            game_state = GameState.ABOUT;
             PageTitle.Text = "About";
             ClearMenu();
-            LayoutRoot.Children.Add(TitlePanel);
             LayoutRoot.Children.Add(AboutPanel);
             ContentPanel.Children.Remove(mainCanvas);
             ContentPanel.Children.Add(quit);
@@ -287,9 +328,9 @@ namespace FriendlyCheckers
                 }
             }
         }
-        public GameType getGameType()
+        public GameState getGameType()
         {
-            return game_type;
+            return game_state;
         }
         
         
@@ -299,7 +340,7 @@ namespace FriendlyCheckers
         public static void MakeMove(int boardX, int boardY)
         {
             if (wait_for_timer || wait_for_computer) return;
-            if (game_type == GameType.OUT_OF_GAME || (checkerX == -1 && checkerY == -1)) return;
+            if (game_state == GameState.OUT_OF_GAME || (checkerX == -1 && checkerY == -1)) return;
             Move m;
             try
             {
@@ -323,9 +364,9 @@ namespace FriendlyCheckers
             WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
             Moves.Text = "Moves: "+logic.getMoveNumber();
             wait_for_timer = false;
-            if (ROTATE && game_type == GameType.LOCAL_MULTI)
+            if (ROTATE && game_state == GameState.LOCAL_MULTI)
                 rotateBoard180();
-            else if (game_type == GameType.SINGLE_PLAYER)
+            else if (game_state == GameState.SINGLE_PLAYER)
             {
                 wait_for_computer = !wait_for_computer;
                 if (wait_for_computer)
@@ -414,10 +455,23 @@ namespace FriendlyCheckers
             Op_DiffHard.IsChecked = DIFFICULT;
             Op_DiffEasy.IsChecked = !DIFFICULT;
 
-            if (!ROTATE || game_type != GameType.LOCAL_MULTI)
+            if (!ROTATE || game_state != GameState.LOCAL_MULTI)
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0); 
             else
                 TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800); 
+        }
+        private void Process_Username(object sender, EventArgs e)
+        {
+            //logic to process username from server
+            // ...
+            // GUI handling
+            Color Lime = new Color();
+            Lime.R = Lime.B = 0;
+            Lime.G = 255;
+            Lime.A = 255;
+            AvailableRect.Foreground = new SolidColorBrush(Lime);
+            AvailableRect.BorderBrush = new SolidColorBrush(Lime);
+            AvailableRect.Content = "Available";
         }
     }
     public class BoardSpace
@@ -535,7 +589,7 @@ namespace FriendlyCheckers
         }
         private void ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (MainPage.game_type == MainPage.GameType.OUT_OF_GAME) return;
+            if (MainPage.game_state == MainPage.GameState.OUT_OF_GAME) return;
             MainPage.handleHighlighting(x,y);
         }
     }
