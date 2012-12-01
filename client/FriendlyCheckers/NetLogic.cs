@@ -74,13 +74,7 @@ namespace FriendlyCheckers{
         private bool writeState;
         private bool getPollRequestState;
         
-        public NetworkLogic(Move move, UserGame game){   // constructor for NetworkLogic object, querys server for data
-            this.additions = move.getAdditions();
-            this.removals = move.getRemovals();
-            this.moveNumber=move.getMoveNumber();
-            this.gameID = game.getGameID();
-            this.matchID = game.getMatchID();
-            this.username = game.getUsername();
+        public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.getQueueState = false;
             this.getLoginState = false;
             this.getRequestState = false;
@@ -220,12 +214,7 @@ namespace FriendlyCheckers{
             try
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
-                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(server + path + "?message=Login[&" + "Username=" + username + "&Password=" + password);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                //dataStream = response.GetResponseStream();
-               // reader = new StreamReader(dataStream);
-               // responseFromServer = reader.ReadToEnd();
-              //  reader.Close();
                 dataStream.Close();
                 response.Close();
             } 
@@ -284,7 +273,7 @@ namespace FriendlyCheckers{
             }
              */
         }
-        public void pollMatch(string username, int gameID)
+        public void pollMatch(string username, int gameID, int matchID)
         {
             /*
             try
