@@ -32,8 +32,7 @@
                 <ColumnDefinition Width="87*" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="Versus" Text="Player 1 vs. Player 2" FontSize ="38" Style="{StaticResource PhoneTextNormalStyle}" Height="58" Width="466" Margin="12,-14,2,117" Grid.ColumnSpan="2" />
-            <TextBlock x:Name="Timer" Text="Time: 0:00" FontSize ="22" Style="{StaticResource PhoneTextNormalStyle}" Height="27" Width="201" Margin="12,37,0,97" HorizontalAlignment="Left" />
-            <TextBlock x:Name="Moves" Text="Moves: 0" FontSize ="22" Style="{StaticResource PhoneTextNormalStyle}" Height="33" Margin="0,36,70,92" HorizontalAlignment="Right" Width="191" Grid.ColumnSpan="2" />
+            <TextBlock x:Name="Moves" Text="Moves: 0" FontSize ="22" Style="{StaticResource PhoneTextNormalStyle}" Height="33" Margin="0,36,275,92" HorizontalAlignment="Right" Width="191" Grid.ColumnSpan="2" />
         </Grid>
         <!--ContentPanel - place additional content here-->
         <Grid x:Name="ContentPanel" Margin="12,109,12,0" Grid.RowSpan="2">
