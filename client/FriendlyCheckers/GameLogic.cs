@@ -26,7 +26,7 @@ namespace FriendlyCheckers {
 
     public enum PieceColor {RED, BLACK};
     public enum PieceType {REGULAR, KING};
-    public enum GameStatus {NOWINNER, REDWINS, BLACKWINS}; 
+    public enum GameStatus {NOWINNER, REDWINS, BLACKWINS, DRAW}; 
 
     public class Move { // this is the api to give data to networking (and maybe GUI)
         int moveNumber;
@@ -235,6 +235,8 @@ namespace FriendlyCheckers {
         Board board; 
         int moveNumber;
         bool forceJumps;
+        int blackPieces = 0;
+        int redPieces = 0; 
 
         Vector multiJumpLoc = null; 
 
@@ -321,8 +323,21 @@ namespace FriendlyCheckers {
             return t;
         }
 
+        public void removePiece(Piece p) {
+            if (p.getColor() == PieceColor.BLACK) {
+                this.blackPieces--;
+            } else {
+                this.redPieces--;
+            }
+            board.removePieceFromCell(p);
+        }
 
-        public void addPiece(Piece p){ 
+        public void addPiece(Piece p){
+            if (p.getColor() == PieceColor.BLACK) {
+                this.blackPieces++;
+            } else {
+                this.redPieces++;
+            }
             board.addPieceToCell(p); 
         }
 
@@ -370,10 +385,10 @@ namespace FriendlyCheckers {
 
         private void doMove(Move move) {
                 foreach (Piece removal in move.getRemovals()) {
-                    board.removePieceFromCell(removal);
+                    removePiece(removal); 
                 }
                 foreach (Piece addition in move.getAdditions()) {
-                    board.addPieceToCell(addition);
+                    addPiece(addition);
                 }
         }
 
@@ -419,7 +434,18 @@ namespace FriendlyCheckers {
         }
 
         public GameStatus getGameStatus() {
-            return GameStatus.NOWINNER; 
+            if (blackPieces > 0) {
+                if (redPieces == 0) {
+                    return GameStatus.BLACKWINS;
+                }
+                return GameStatus.NOWINNER;
+            } else if (redPieces > 0) {
+                if (blackPieces == 0) {
+                    return GameStatus.REDWINS;
+                }
+                return GameStatus.NOWINNER;
+            }
+            return GameStatus.DRAW;
         }
 
         private List<Vector> getDoableJumps(Piece p) { 
@@ -459,8 +485,6 @@ namespace FriendlyCheckers {
         private Move getMove(Piece start, int yEnd, int xEnd){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
-
-
 
             if(multiJumpLoc != null) { 
                 if(multiJumpLoc.Equals(start.getCoordinates())) { 
