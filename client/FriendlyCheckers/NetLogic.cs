@@ -10,12 +10,15 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace FriendlyCheckers{
-    public class UnknownException : System.Exception {  }
+    public class UnknownException : System.Exception { }
     public class LoginException : System.Exception { }
     public class QueueMatchException : System.Exception { }
     public class RequestMatchException : System.Exception { }
+    public class PollMatchException : System.Exception { }
+    public class PollRequestException : System.Exception { }
     public class NetworkLogic
     {
 
@@ -40,18 +43,34 @@ namespace FriendlyCheckers{
         private StreamReader reader;
 
         private int moveNumber;
-        private string returncode = "\0";
         private int gameID;
         private int matchID;
+
         private string username;
         private string opponentname;
         private string server="http://checkers.nne.net/";
         private string serverpath;
         private string responseFromServer;
+        private string returncode = "\0";
         private static string loginSuccess = "42.1";
         private static string queueMatchSuccess = "42.2";
+        private static string requestMatchSuccess = "42.3";
+        private static string pollMatchSuccess = "42.4";
+        private static string writeToServerSuccess = "42.5";
+        private static string pollRequestSuccess = "42.6";
+        private static string loginFailure = "666.1";
+        private static string queueMatchFailure = "666.2";
+        private static string requestMatchFailure = "666.3";
+        private static string pollMatchFailure = "666.4";
+        private static string writeToServerFailure = "666.5";
+        private static string pollRequestFailure = "666.6";
 
         private bool getLoginState;
+        private bool getQueueState;
+        private bool getRequestState;
+        private bool getPollMatchState;
+        private bool writeState;
+        private bool getPollRequestState;
         
         public NetworkLogic(Move move, UserGame game){   // constructor for NetworkLogic object, querys server for data
             this.additions = move.getAdditions();
@@ -60,6 +79,12 @@ namespace FriendlyCheckers{
             this.gameID = game.getGameID();
             this.matchID = game.getMatchID();
             this.username = game.getUsername();
+            this.getQueueState = false;
+            this.getLoginState = false;
+            this.getRequestState = false;
+            this.getPollRequestState = false;
+            this.getPollMatchState = false;
+            this.writeState = false;
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
@@ -74,9 +99,63 @@ namespace FriendlyCheckers{
             dataStream.Close();
             reader.Close();
             response.Close();
-            if (responseFromServer.Equals(loginSuccess))
+            this.checker(responseFromServer);
+            return;
+        }
+        private void checker(string responseFromServer)
+        {
+            if (responseFromServer.Contains(loginSuccess))
             {
                 this.getLoginState = true;
+                return;
+            }
+            else if (responseFromServer.Contains(queueMatchSuccess))
+            {
+                this.getQueueState = true;
+                return;
+            } 
+            else if (responseFromServer.Contains(requestMatchSuccess))
+            {
+                this.getRequestState = true;
+                return;
+            } 
+            else if (responseFromServer.Contains(pollMatchSuccess))
+            {
+                this.getPollMatchState = true;
+                return;
+            } 
+            else if (responseFromServer.Contains(writeToServerSuccess))
+            {
+                this.writeState = true;
+                return;
+            } 
+            else if (responseFromServer.Contains(pollRequestSuccess))
+            {
+                this.getRequestState = true;
+                return;
+            }
+            else if (responseFromServer.Contains(loginFailure))
+            {
+                return;
+            }
+            else if (responseFromServer.Contains(queueMatchFailure))
+            {
+                return;
+            }
+            else if (responseFromServer.Contains(requestMatchFailure))
+            {
+                return;
+            }
+            else if (responseFromServer.Contains(pollMatchFailure))
+            {
+                return;
+            }
+            else if (responseFromServer.Contains(writeToServerFailure))
+            {
+                return;
+            }
+            else if (responseFromServer.Contains(pollRequestFailure))
+            {
                 return;
             }
             return;
@@ -85,17 +164,10 @@ namespace FriendlyCheckers{
         {
 
         }
-
-        public string queryServer(int move, int position)
-        {
-            //call PHP server for last known moves
-            //return String (returncode) with either 42.xx for success or 666.xx for failure 
-            return returncode;
-        }
         public void writeToServer(int move, int position)
         {
             // writes information to server after querying when server was last modified
-            //error codes still apply(42.xx for success, 666.xx for failure)
+            //error codes still apply(42.xx for success,  666.xx for failure)
         }
         public bool login(string username, string password)
         {
@@ -105,7 +177,7 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-            }
+               }
             catch (WebException e)
             {
                 Console.WriteLine("Caught exception : "+e.ToString());  //...
@@ -114,11 +186,12 @@ namespace FriendlyCheckers{
             }
             if (this.getLoginState)
             {
+                this.getLoginState = false;
                 return true;
             }
             return false;
         }
-        public void queueMatch(string username, int gameID)
+        public bool queueMatch(string username, int gameID)
         {
             string serverpath = server + "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
             try
@@ -133,25 +206,46 @@ namespace FriendlyCheckers{
                 dataStream.Close();
                 response.Close();
             } 
-            catch (Exception e)
+            catch (WebException e)
             {
                 Console.WriteLine("Caught error :" + e.ToString());  //...
+                QueueMatchException qe = new QueueMatchException();
+                throw qe;
             }
+            if (this.getQueueState)
+            {
+                this.getQueueState = false;
+                return true;
+            }
+            return false;
             
         }
 
-        public void requestMatch(string username, int gameID, string opponentname)
+        public bool requestMatch(string username, int gameID, string opponentName)
         {
-           /* try
+            serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&Opponentname="+opponentName;
+            try
             {
-                //HttpWebRequest request = (HttpWebRequest)Webrequest.Create(server + path + "?message=RequestMatch&" + "Username=" + username + "&Password=" + password);
-                //HttpWebResponse response = (HttpWebResponse)request.GetResponseStream();
+                request = (HttpWebRequest)WebRequest.Create(serverpath);
+                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+            }
+            catch (WebException we)
+            {
+                we.ToString();
+                  //...
+                RequestMatchException rme = new RequestMatchException();
+                throw rme;
             }
             catch (Exception e)
             {
-                //...
+                Console.WriteLine("Caught exception : " + e.ToString()); // debug
             }
-            */
+            if (this.getRequestState)
+            {
+                this.getRequestState = false;
+                return true;
+            }
+            return false;
         }
         public void pollRequest(string username) // called by Caleb's GameLogic to poll server, threads not necessary!
         {
