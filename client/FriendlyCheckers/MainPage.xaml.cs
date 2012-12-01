@@ -30,6 +30,7 @@ namespace FriendlyCheckers
         private static Boolean FORCE_JUMP = false, ROTATE = false, DIFFICULT = false;
         private static GameLogic logic;
         private static DataHandler dataDude;
+        private static NetworkLogic netLogic;
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
         private Player computerPlayer;
@@ -51,6 +52,7 @@ namespace FriendlyCheckers
             checkerX = checkerY = -1;
             computerPlayer = new Player("Computer", PieceColor.RED);
             dataDude = new DataHandler();
+            netLogic = new NetworkLogic();
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -216,9 +218,17 @@ namespace FriendlyCheckers
             game_state = GameState.SAVE_GAME;
             PageTitle.Text = "Active Games";
             ClearMenu();
-            LayoutRoot.Children.Add(SaveGamePanel);
             ContentPanel.Children.Remove(mainCanvas);
             ContentPanel.Children.Add(quit);
+            if (!dataDude.hasCreds())
+            {
+                Show_Creds(sender, e);
+                return;
+            }
+            else
+            {
+                LayoutRoot.Children.Add(SaveGamePanel);
+            }
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
@@ -478,7 +488,7 @@ namespace FriendlyCheckers
         private void Process_Username(object sender, EventArgs e)
         {
             //logic to process username from server
-            // ...
+           // netLogic.processUsername(UserName.Text);
             // GUI handling
             Color Lime = new Color();
             Lime.R = Lime.B = 0;

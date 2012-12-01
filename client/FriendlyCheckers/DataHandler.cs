@@ -11,18 +11,12 @@ namespace FriendlyCheckers
         private String data_file_name;
         private String username;
         private String password;
-        private List<int> saveGameIDs;
 
         public DataHandler()
         {
             this.data_file_name = "fc4.dat";
             this.username = "";
             this.password = "";
-
-            // Establish a connection to .dat file, and read first line for number of save games
-            this.saveGameIDs = new List<int>();
-            // for(int i=0; i< line read; i++)
-                    //pull save game from database with ID = file.read();
         }
         public void saveGame(int gameID, Board b, PieceColor whoseTurn)
         {   
@@ -35,8 +29,6 @@ namespace FriendlyCheckers
             StreamWriter writer = new StreamWriter(fileStream);
             writer.Write(gameID);
             writer.Close();
-
-            //
         }
         public void loadGame(int gameID)
         {
@@ -59,32 +51,33 @@ namespace FriendlyCheckers
             return !(username.Equals("") && password.Equals(""));
         }
 	}
-    public class UserGame
+    public class GameData
     {
-        int gameID;
-        int matchID;
-        string username;
+        private Move[] moves;
+        private PieceColor whoseMove;
 
-        public UserGame(int gameID, int matchID, string username)
+        public GameData(Move[] moves, PieceColor whoseMove)
         {
-            this.gameID = gameID;
+            this.moves = moves;
+            this.whoseMove = whoseMove;
+        }
+        public Move[] getMoves() { return moves; }
+        public PieceColor getWhoseMove() { return whoseMove; }
+    }
+    public class SaveData
+    {
+        private int matchID;
+        private string opponent;
+        private int numMoves;
+
+        public SaveData(int matchID, string opponent, int numMoves)
+        {
             this.matchID = matchID;
-            this.username = username;
+            this.opponent = opponent;
+            this.numMoves = numMoves;
         }
-
-        public int getGameID()
-        {
-            return gameID;
-        }
-
-        public int getMatchID()
-        {
-            return matchID;
-        }
-
-        public string getUsername()
-        {
-            return username;
-        }
+        public int getMatchID() { return matchID; }
+        public string getOpponent() { return opponent; }
+        public int getNumMoves() { return numMoves; }
     }
 }
