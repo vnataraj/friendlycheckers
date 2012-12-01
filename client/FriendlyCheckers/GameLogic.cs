@@ -465,11 +465,11 @@ namespace FriendlyCheckers {
         public GameStatus getGameStatus() {
             if (!canJumpSomewhere() && !canMoveSomewhere()) {
                 if (whoseMove() == PieceColor.BLACK) {
-                    if (redPieces < 0) {
+                    if (redPieces > 0) {
                         return GameStatus.REDWINS;
                     }
                 } else {
-                    if (blackPieces < 0) {
+                    if (blackPieces > 0) {
                         return GameStatus.BLACKWINS;
                     }
                 }
@@ -554,11 +554,13 @@ namespace FriendlyCheckers {
                     if (p.getColor() != jumperColor) {
                         continue;
                     }
-                    if (getDoableJumps(p).Count > 0) {
+                    if (getDoableMoves(p).Count > 0) {
+                        System.Diagnostics.Debug.WriteLine("can jump somewhere returning true for" +y+" "+x);
                         return true;
                     }
                 }
             }
+            System.Diagnostics.Debug.WriteLine("can move somewhere returning false");
             return false;
         }
 
@@ -574,10 +576,12 @@ namespace FriendlyCheckers {
                         continue;
                     }
                     if (getDoableJumps(p).Count > 0) {
+                        System.Diagnostics.Debug.WriteLine("can jump somewhere returning true. "+y+" "+x);
                         return true;
                     }
                 }
             }
+            System.Diagnostics.Debug.WriteLine("can jump somewhere returning false");
             return false;
         }
 
