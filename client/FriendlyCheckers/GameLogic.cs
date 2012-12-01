@@ -482,6 +482,27 @@ namespace FriendlyCheckers {
             return doable; 
         }
 
+        private bool canJumpSomewhere() {
+            PieceColor jumperColor = this.whoseMove();
+            for (int y = 0; y < board.getHeight(); y++) {
+                for (int x = 0; x < board.getHeight(); x++) {
+                    Piece p = board.getCellContents(y, x);
+                    if (p == null) {
+                        continue;
+                    }
+                    if (p.getColor() != jumperColor) {
+                        continue;
+                    }
+                    if (getDoableJumps(p).Count > 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+
+
         private Move getMove(Piece start, int yEnd, int xEnd){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
@@ -503,7 +524,7 @@ namespace FriendlyCheckers {
             Vector myMove = endLoc.subtract(startLoc);
 
             //jump logic goes here
-            if (this.forceJumps) {
+            if (this.forceJumps && canJumpSomewhere()) {
                 List<Vector> jumps = getDoableJumps(start);
                 bool found = false;
                 foreach (Vector jump in jumps) {
