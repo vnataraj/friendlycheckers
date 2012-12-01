@@ -91,6 +91,8 @@
             <Button Name="AvailableRect" Height="75" Margin="272,123,24,358"></Button>
             <TextBlock x:Name="PasswordTitle" Text="Password" FontSize="28" Margin ="0,209,12,306" Style="{StaticResource PhoneTextNormalStyle}" Height="40" HorizontalAlignment="Right" Width="454" />
             <PasswordBox Name="Password" Width ="450" Margin="6,239,24,247" Height="69"></PasswordBox>
+            <Button FontSize="26" Click="Login_Confirm" Height="75" Margin="6,314,194,166" Name="Login">Login</Button>
+            <Button Height="75" Margin="275,314,21,166" Name="LoginConfirm" />
         </Grid>
     </Grid>
 </phone:PhoneApplicationPage>

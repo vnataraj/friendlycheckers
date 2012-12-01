@@ -23,6 +23,8 @@ namespace FriendlyCheckers
         public static Color HighlightGrey;
         private static Color Brown;
         private static Color Sand;
+        private static Color Valid;
+        private static Color Invalid;
 
         private static int checkerX, checkerY;
         public static int w = 400, h = 400;
@@ -109,6 +111,17 @@ namespace FriendlyCheckers
             Sand.G = 180;
             Sand.B = 90;
             Sand.A = 255;
+            
+            Valid = new Color();
+            Valid.R = Valid.B = 0;
+            Valid.G = 255;
+            Valid.A = 255;
+
+            Invalid = new Color();
+            Invalid.G = Invalid.B = 0;
+            Invalid.R = 255;
+            Invalid.A = 255;
+
         }
         private void createPieces()
         {
@@ -396,14 +409,14 @@ namespace FriendlyCheckers
                 wait_for_computer = !wait_for_computer;
                 if (wait_for_computer)
                 {
-                    //Move m
-                    //if(DIFFICULT)
-                    //  m = computerPlayer.getHardMove(logic); 
-                    //else
-                    //  m = computerPlayer.getEasyMove(logic);
-                   // handleMove(m);
-                   // TURN_TIMER.Start();
-                   // wait_for_timer = true;
+                    /*Move m;
+                    if(DIFFICULT)
+                        m = computerPlayer.getHardMove(logic); 
+                    else
+                        m = computerPlayer.getEasyMove(logic);
+                    handleMove(m);*/
+                    TURN_TIMER.Start();
+                    wait_for_timer = true;
                 }
             }
         }
@@ -490,19 +503,16 @@ namespace FriendlyCheckers
             //logic to process username from server
            // netLogic.processUsername(UserName.Text);
             // GUI handling
-            Color Lime = new Color();
-            Lime.R = Lime.B = 0;
-            Lime.G = 255;
-            Lime.A = 255;
-
-            Color Invalid = new Color();
-            Invalid.G = Lime.B = 0;
-            Invalid.R = 255;
-            Invalid.A = 255;
-
-            AvailableRect.Foreground = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Lime);
-            AvailableRect.BorderBrush = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Lime);
+            AvailableRect.Foreground = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Valid);
+            AvailableRect.BorderBrush = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Valid);
             AvailableRect.Content = UserName.Text.Equals("")?"Unavailable":"Available";
+        }
+        private void Login_Confirm(object sender, EventArgs e)
+        {
+            Boolean success = netLogic.login(UserName.Text, Password.Password);
+            LoginConfirm.Foreground = new SolidColorBrush(success? Valid : Invalid);
+            LoginConfirm.BorderBrush = new SolidColorBrush(success ? Valid : Invalid);
+            LoginConfirm.Content = success ? "Success" : "Failed";
         }
     }
     public class BoardSpace
