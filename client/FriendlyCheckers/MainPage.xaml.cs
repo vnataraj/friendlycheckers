@@ -293,7 +293,7 @@ namespace FriendlyCheckers
                     delete(k, j);
                 }
             }
-            createPieces();
+            createPieces(); //makes new GameLogic instance
             Moves.Text = "Moves: 0";
             WhoseTurn.Text = "Black to move next.";
         }
@@ -350,6 +350,21 @@ namespace FriendlyCheckers
                 handleHighlighting(checkerX, checkerY);
                 m = logic.makeMove(locY, locX, (!rotated ? boardY : (row_W - boardY - 1)), (!rotated ? boardX : (row_W - boardX - 1)));
                 handleMove(m);
+
+                GameStatus status = logic.getGameStatus();
+                if (status == GameStatus.BLACKWINS) {
+                    MessageBox.Show("Black player wins!");
+                    System.Diagnostics.Debug.WriteLine("game status is BLACKWINS");
+                } else if (status == GameStatus.REDWINS) {
+                    MessageBox.Show("Red player wins!");
+                    System.Diagnostics.Debug.WriteLine("game status is REDWINS");
+                } else if (status == GameStatus.DRAW) {
+                    MessageBox.Show("Game is a draw.");
+                    System.Diagnostics.Debug.WriteLine("game status is DRAW");
+                } else {
+                    System.Diagnostics.Debug.WriteLine("game status is NOWINNER");
+                }
+
 
                 TURN_TIMER.Start();
                 wait_for_timer = true;
