@@ -4,7 +4,6 @@ List of message:
 ----------------
 Enter into Queue: 			QueueMatch
 Request game w/other user: 	RequestMatch
-Sync matches with server: 	SyncMatches
 Perform move: 				RecordMove
 Poll:						PollMatch
 Login:						Login
