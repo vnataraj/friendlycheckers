@@ -12,45 +12,10 @@ using System.Windows.Shapes;
 using System.Collections.Generic;
 
 namespace FriendlyCheckers{
-    public class YoureFuckedException : System.Exception {  }
-    public class WebClientEx : WebClient
-    {
-        public WebRequest webreq;
-        public WebClientEx(Uri address)
-        {
-            webreq = this.GetWebRequest(address);
-        }
-
-        private readonly CookieContainer container = new CookieContainer();
-
-        protected override WebRequest GetWebRequest(Uri address)
-        {
-            WebRequest r = base.GetWebRequest(address);
-            var request = r as HttpWebRequest;
-            if (request != null)
-            {
-                request.CookieContainer = container;
-            }
-            return r;
-        }
-
-        protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
-        {
-            WebResponse response = base.GetWebResponse(request, result);
-            ReadCookies(response);
-            return response;
-        }
-
-        private void ReadCookies(WebResponse r)
-        {
-            var response = r as HttpWebResponse;
-            if (response != null)
-            {
-                CookieCollection cookies = response.Cookies;
-            }
-        }
-    }
-
+    public class UnknownException : System.Exception {  }
+    public class LoginException : System.Exception { }
+    public class QueueMatchException : System.Exception { }
+    public class RequestMatchException : System.Exception { }
     public class NetworkLogic
     {
 
@@ -80,14 +45,13 @@ namespace FriendlyCheckers{
         private int matchID;
         private string username;
         private string opponentname;
-        private string server="http://localhost:8000";
+        private string server="http://checkers.nne.net/";
         private string serverpath;
         private string responseFromServer;
-        private string path = "/root";
         private static string loginSuccess = "42.1";
         private static string queueMatchSuccess = "42.2";
 
-        public bool getLoginState;
+        private bool getLoginState;
         
         public NetworkLogic(Move move, UserGame game){   // constructor for NetworkLogic object, querys server for data
             this.additions = move.getAdditions();
@@ -100,51 +64,6 @@ namespace FriendlyCheckers{
             // do startup stuff
         }
 
-        public string queryServer(int move, int position)
-        {
-            //call PHP server for last known moves
-            //return String (returncode) with either 42.xx for success or 666.xx for failure 
-            return returncode;
-        }
-        public void writeToServer(int move, int position)
-        {
-            // writes information to server after querying when server was last modified
-            //error codes still apply(42.xx for success, 666.xx for failure)
-        }
-        public void login(string username, string password)
-        {
-
-            serverpath=server + path + "?message=Login[&" + "Username=" + username + "&Password=" + password;
-            try
-            {
-                request = (HttpWebRequest)WebRequest.Create(serverpath);
-                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Caught exception : "+e.ToString());  //...
-            }
-        }
-        public void queueMatch(string username, int gameID)
-        {
-            string serverpath = server + path + "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
-            try
-            {
-                request = (HttpWebRequest)WebRequest.Create(serverpath);
-                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(server + path + "?message=Login[&" + "Username=" + username + "&Password=" + password);
-                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                //dataStream = response.GetResponseStream();
-               // reader = new StreamReader(dataStream);
-               // responseFromServer = reader.ReadToEnd();
-              //  reader.Close();
-                dataStream.Close();
-                response.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Caught error :" + e.ToString());  //...
-            }
-        }
         private void requestHandler(IAsyncResult result)
         {
             webreq = (HttpWebRequest)result.AsyncState;
@@ -158,8 +77,69 @@ namespace FriendlyCheckers{
             if (responseFromServer.Equals(loginSuccess))
             {
                 this.getLoginState = true;
+                return;
             }
+            return;
         }
+        private void createUrl(List<Piece> removals, List<Piece> additions)
+        {
+
+        }
+
+        public string queryServer(int move, int position)
+        {
+            //call PHP server for last known moves
+            //return String (returncode) with either 42.xx for success or 666.xx for failure 
+            return returncode;
+        }
+        public void writeToServer(int move, int position)
+        {
+            // writes information to server after querying when server was last modified
+            //error codes still apply(42.xx for success, 666.xx for failure)
+        }
+        public bool login(string username, string password)
+        {
+
+            serverpath=server + "?message=Login&" + "Username=" + username + "&Password=" + password;
+            try
+            {
+                request = (HttpWebRequest)WebRequest.Create(serverpath);
+                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine("Caught exception : "+e.ToString());  //...
+                LoginException le = new LoginException();
+                throw le;
+            }
+            if (this.getLoginState)
+            {
+                return true;
+            }
+            return false;
+        }
+        public void queueMatch(string username, int gameID)
+        {
+            string serverpath = server + "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
+            try
+            {
+                request = (HttpWebRequest)WebRequest.Create(serverpath);
+                //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(server + path + "?message=Login[&" + "Username=" + username + "&Password=" + password);
+                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+                //dataStream = response.GetResponseStream();
+               // reader = new StreamReader(dataStream);
+               // responseFromServer = reader.ReadToEnd();
+              //  reader.Close();
+                dataStream.Close();
+                response.Close();
+            } 
+            catch (Exception e)
+            {
+                Console.WriteLine("Caught error :" + e.ToString());  //...
+            }
+            
+        }
+
         public void requestMatch(string username, int gameID, string opponentname)
         {
            /* try
