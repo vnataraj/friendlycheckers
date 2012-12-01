@@ -186,6 +186,11 @@ namespace FriendlyCheckers{
             }
             return false;
         }
+
+        public void parseUserGame(UserGame game)
+        {
+
+        }
         public bool login(string username, string password)
         {
 
@@ -258,7 +263,7 @@ namespace FriendlyCheckers{
                 return true;
             }
             return false;
-        }
+        } 
         public void pollRequest(string username) // called by Caleb's GameLogic to poll server, threads not necessary!
         {
             /*
@@ -287,5 +292,6 @@ namespace FriendlyCheckers{
             }
              */
         }
+        public bool checkUser(string username);
     }
 }
