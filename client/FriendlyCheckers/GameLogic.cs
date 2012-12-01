@@ -9,6 +9,9 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Collections.Generic;
+using System.Runtime.Serialization; 
+//using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace FriendlyCheckers {
 
@@ -186,7 +189,6 @@ namespace FriendlyCheckers {
     }
 
 
-
     public class Board {
         //List<Piece> pieces;
         Cell[,] grid;
@@ -200,6 +202,19 @@ namespace FriendlyCheckers {
             return width;
         }
 
+        public static Board deepCopy(Board b) {
+            Board newB = new Board(b.getHeight(), b.getWidth());
+            for (int y = 0; y < newB.getHeight(); y++) {
+                for (int x = 0; x < newB.getWidth(); x++) {
+                    Piece p = b.getCellContents(y, x);
+                    if (p != null) {
+                        newB.addPieceToCell(new Piece(p));
+                    }
+                }
+            }
+            return newB;
+        }
+
         public Board(int height, int width) {
             this.grid = new Cell[height, width];
             for (int y = 0; y < height; y++) {
@@ -210,6 +225,7 @@ namespace FriendlyCheckers {
             this.height = height;
             this.width = width;
         }
+
         public Piece getCellContents(Vector v) {
             return getCellContents(v.getY(), v.getX());
         }
@@ -294,13 +310,26 @@ namespace FriendlyCheckers {
             return moveNumber;
         }
 
-        public GameLogic(int boardWidth, int boardHeight) : this 
-            (boardWidth, boardHeight, false){}
+        public GameLogic(int boardHeight, int boardWidth) : this 
+            (boardHeight, boardWidth, false){}
 
-        public GameLogic(int boardWidth, int boardHeight, bool forceJumps) {
+        public GameLogic(int boardHeight, int boardWidth, bool forceJumps) {
             this.forceJumps = forceJumps; 
             this.board = new Board(boardWidth, boardHeight);
             moveNumber = 0;
+        }
+
+        public GameLogic(GameLogic g) { //does a deep copy of GameLogic
+            this.forceJumps = g.forceJumps;
+            this.board = g.getBoardCopy();
+            this.moveNumber = g.moveNumber;
+            this.blackPieces = g.blackPieces;
+            this.redPieces = g.redPieces;
+            this.multiJumpLoc = new Vector(g.multiJumpLoc);
+        }
+
+        public Board getBoardCopy() {
+            return Board.deepCopy(board);
         }
 
         public string getBoardText() {
