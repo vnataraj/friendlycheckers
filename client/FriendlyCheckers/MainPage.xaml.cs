@@ -29,6 +29,7 @@ namespace FriendlyCheckers
         private static Canvas mainCanvas;
         private static Boolean FORCE_JUMP = false, ROTATE = false, DIFFICULT = false;
         private static GameLogic logic;
+        private static DataHandler dataDude;
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
         private Player computerPlayer;
@@ -36,10 +37,9 @@ namespace FriendlyCheckers
         private static Boolean rotated = false;
         private static Boolean wait_for_timer = false, wait_for_computer = false;
         private static int row_W = 8;
-        private static DispatcherTimer TURN_TIMER, GAME_TIMER;
+        private static DispatcherTimer TURN_TIMER;
         public enum GameType { OUT_OF_GAME, OPTIONS, ABOUT, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
         public static GameType game_type = GameType.OUT_OF_GAME;
-        private int GAME_TIME = 0;
 
         public MainPage()
         {
@@ -48,14 +48,12 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(AboutPanel);
             checkerX = checkerY = -1;
             computerPlayer = new Player("Computer", PieceColor.RED);
+            dataDude = new DataHandler();
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
             shade.A = 150;
             Shader.Fill = new SolidColorBrush(shade);
-            GAME_TIMER = new DispatcherTimer();
-            GAME_TIMER.Tick += gameTimerTick;              // Everytime timer ticks, timer_Tick will be called
-            GAME_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 1000);  // Timer will tick in 800 milliseconds. This is the wait between moves.
 
             TURN_TIMER = new DispatcherTimer();
             TURN_TIMER.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
@@ -151,7 +149,6 @@ namespace FriendlyCheckers
         }
         private void RemoveInGameStats()
         {
-            HiddenPanel.Children.Remove(Timer);
             HiddenPanel.Children.Remove(Moves);
             HiddenPanel.Children.Remove(Versus);
             ContentPanel.Children.Remove(quit);
@@ -162,7 +159,6 @@ namespace FriendlyCheckers
         private void AddInGameStats()
         {
             HiddenPanel.Children.Add(Versus);
-            HiddenPanel.Children.Add(Timer);
             HiddenPanel.Children.Add(Moves);
             ContentPanel.Children.Add(quit);
             ContentPanel.Children.Add(WhoseTurn);
@@ -175,7 +171,6 @@ namespace FriendlyCheckers
             Versus.Text = "Player 1 vs. Computer";
             AddInGameStats();
             resetBoard();
-            GAME_TIMER.Start();
         }
         private void Local_Multi_Setup(object sender, RoutedEventArgs e)
         {
@@ -188,7 +183,6 @@ namespace FriendlyCheckers
             Versus.Text = "Player 1 vs. Player 2";
             AddInGameStats();
             resetBoard();
-            GAME_TIMER.Start();
         }
         private void Online_Multi_Setup(object sender, RoutedEventArgs e)
         {
@@ -203,9 +197,8 @@ namespace FriendlyCheckers
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
-            GAME_TIMER.Stop();
             if (game_type != GameType.OPTIONS && game_type != GameType.ABOUT
-                    && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel) { GAME_TIMER.Start(); return; }
+                    && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return; 
             RemoveInGameStats();
             if (game_type == GameType.OPTIONS || game_type == GameType.ABOUT)
             {
@@ -226,8 +219,6 @@ namespace FriendlyCheckers
             wait_for_timer = false;
             rotated = false;
             checkerX = checkerY = -1;
-            GAME_TIME = 0;
-            Timer.Text = "Time: 0:00";
             resetBoard();
             rotateBoard90();
         }
@@ -315,7 +306,7 @@ namespace FriendlyCheckers
                 int locX = checkerX;
                 int locY = checkerY;
                 // Unhighlight the selected piece
-                handleHighlighting(checkerX,checkerY);
+                handleHighlighting(checkerX, checkerY);
                 m = logic.makeMove(locY, locX, (!rotated ? boardY : (row_W - boardY - 1)), (!rotated ? boardX : (row_W - boardX - 1)));
                 handleMove(m);
 
@@ -324,7 +315,6 @@ namespace FriendlyCheckers
             }
             catch (PieceWrongColorException) { MessageBox.Show("You cannot move your opponent's pieces!"); }
             catch (InvalidMoveException) { }
-            catch (GameLogicException) { MessageBox.Show("A logic exception has occurred."); }
             checkerX = checkerY = -1;
         }
         private void timerTick(object o, EventArgs sender)
@@ -342,22 +332,14 @@ namespace FriendlyCheckers
                 {
                     //Move m
                     //if(DIFFICULT)
-                    //  m = computerPlayer.getHardMove(logic, pieces); 
+                    //  m = computerPlayer.getHardMove(logic); 
                     //else
-                    //  m = computerPlayer.getEasyMove(logic, pieces);
+                    //  m = computerPlayer.getEasyMove(logic);
                    // handleMove(m);
                    // TURN_TIMER.Start();
                    // wait_for_timer = true;
                 }
             }
-        }
-        private void gameTimerTick(object o, EventArgs sender)
-        {
-            GAME_TIME++;
-            int mins = GAME_TIME / 60;
-            int secs = GAME_TIME % 60;
-
-            Timer.Text = "Time: " + mins + ":" + (secs < 10 ? ("0" + secs) : ""+secs);
         }
         private static void handleMove(Move move)
         {
