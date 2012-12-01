@@ -581,14 +581,16 @@ namespace FriendlyCheckers {
             return false;
         }
 
-
+        private bool moveIsJump(Vector start, int yEnd, int xEnd) {
+            return (Math.Abs(start.getX() - xEnd) == 2 && Math.Abs(start.getY() - yEnd) == 2);
+        }
 
         private Move getMove(Piece start, int yEnd, int xEnd){
             List<Piece> removals = new List<Piece>();
             List<Piece> additions = new List<Piece>(); 
 
             if(multiJumpLoc != null) { 
-                if(multiJumpLoc.Equals(start.getCoordinates())) { 
+                if(multiJumpLoc.Equals(start.getCoordinates()) && moveIsJump(start.getCoordinates(), yEnd, xEnd)) { 
                 } else {
                     throw new WrongMultiJumpPieceException();
                 }
