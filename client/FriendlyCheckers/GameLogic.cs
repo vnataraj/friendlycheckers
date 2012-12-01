@@ -20,7 +20,7 @@ namespace FriendlyCheckers {
     public class UnreachableCodeException : GameLogicException { }
     public class CellOutOfBoundsException : GameLogicException { }
     public class InvalidMoveException : GameLogicException { }
-    public class PlayerMustJumpException : GameLogicException { }
+    public class PlayerMustJumpException : InvalidMoveException { }
     public class BadMoveNumberException : GameLogicException { }
 
     public enum PieceColor {RED, BLACK};
@@ -233,7 +233,7 @@ namespace FriendlyCheckers {
             return getCellContents(v.getY(), v.getX());
         }
         public Piece getCellContents(int y, int x) {
-            if (!(x < width) || !(y < height)) {
+            if (!(x < width) || !(y < height) || !(x > 0) || !(y > 0)) {
                 throw new CellOutOfBoundsException();
             }
             return grid[y,x].getPiece(); 
@@ -356,23 +356,26 @@ namespace FriendlyCheckers {
         public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
             System.Diagnostics.Debug.WriteLine("makeMove called"); 
             Move myMove = getMove(yStart, xStart, yEnd, xEnd);
+
             doMove(myMove);
+            if (myMove.getRemovals().Count == 2 && getDoableJumps(myMove.getAdditions()[0]).Count != 0) {
+                //don't change movenumber
+            } else {
+                moveNumber++;
+            }
+
             return myMove;
         }
 
         private void doMove(Move move) {
-            if (move.getMoveNumber() == moveNumber + 1) {
                 foreach (Piece removal in move.getRemovals()) {
                     board.removePieceFromCell(removal);
                 }
                 foreach (Piece addition in move.getAdditions()) {
                     board.addPieceToCell(addition);
                 }
-                moveNumber++;
-            } else {
-                throw new BadMoveNumberException();
-            }
         }
+
 
         private void undoMove(Move move) {
             if (move.getMoveNumber() == moveNumber - 1) {
@@ -417,7 +420,12 @@ namespace FriendlyCheckers {
                     continue;
                 }
                 Vector middleLoc = p.getCoordinates().add(jump.divideVector(2));
-                Piece middleP = board.getCellContents(middleLoc);
+                Piece middleP; 
+                try {
+                    middleP = board.getCellContents(middleLoc);
+                } catch (CellOutOfBoundsException) {
+                    continue;
+                }
                 if (middleP == null) {
                     continue;
                 }
@@ -428,14 +436,6 @@ namespace FriendlyCheckers {
             }
 
             return doable; 
-        }
-
-            }
-
-
-
-            
-            
         }
 
         private Move getMove(int yStart, int xStart, int yEnd, int xEnd){
@@ -457,9 +457,24 @@ namespace FriendlyCheckers {
                 throw new PieceWrongColorException(); 
             }
 
-            //jump logic goes here
-
             Vector myMove = new Vector(yEnd - yStart, xEnd - xStart);
+
+            //jump logic goes here
+            if (this.forceJumps) {
+                List<Vector> jumps = getDoableJumps(start);
+                bool found = false;
+                foreach (Vector jump in jumps) {
+                    if (jump.Equals(myMove)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw new PlayerMustJumpException();
+                }
+            }
+
+            
             System.Diagnostics.Debug.WriteLine("myMove is " + myMove.ToString()); 
             bool foundValid = false; 
 
