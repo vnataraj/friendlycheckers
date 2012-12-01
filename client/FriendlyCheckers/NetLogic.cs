@@ -10,7 +10,6 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace FriendlyCheckers{
     public class UnknownException : System.Exception { }
@@ -19,6 +18,7 @@ namespace FriendlyCheckers{
     public class RequestMatchException : System.Exception { }
     public class PollMatchException : System.Exception { }
     public class PollRequestException : System.Exception { }
+    public class WriteToServerException : System.Exception { }
     public class NetworkLogic
     {
 
@@ -58,12 +58,14 @@ namespace FriendlyCheckers{
         private static string pollMatchSuccess = "42.4";
         private static string writeToServerSuccess = "42.5";
         private static string pollRequestSuccess = "42.6";
+        private static string acceptMatchSuccess="42.7";
+        private static string pollMatchNoMoveSuccess="42.8";
         private static string loginFailure = "666.1";
         private static string queueMatchFailure = "666.2";
         private static string requestMatchFailure = "666.3";
         private static string pollMatchFailure = "666.4";
         private static string writeToServerFailure = "666.5";
-        private static string pollRequestFailure = "666.6";
+        private static string pollRequestFailure = "666.6"; 
 
         private bool getLoginState;
         private bool getQueueState;
@@ -164,10 +166,31 @@ namespace FriendlyCheckers{
         {
 
         }
-        public void writeToServer(int move, int position)
+        public bool writeToServer(string username, int gameID, int matchID, Move move)
         {
-            // writes information to server after querying when server was last modified
-            //error codes still apply(42.xx for success,  666.xx for failure)
+            serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&MatchID="+matchID.ToString()+"&Move="+move.ToString(); // parse move!!!
+            try
+            {
+                request = (HttpWebRequest)WebRequest.Create(serverpath);
+                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+            }
+            catch (WebException we)
+            {
+                we.ToString();
+                  //...
+                WriteToServerException wtse = new WriteToServerException();
+                throw wtse;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Caught exception : " + e.ToString()); // debug
+            }
+            if (this.getRequestState)
+            {
+                this.getRequestState = false;
+                return true;
+            }
+            return false;
         }
         public bool login(string username, string password)
         {
