@@ -41,6 +41,8 @@ namespace FriendlyCheckers{
         private HttpWebResponse response;
         private Stream dataStream;
         private StreamReader reader;
+        private SaveData[] saveData;
+        private GameData gameData;
 
         private int moveNumber;
         private int gameID;
@@ -159,6 +161,18 @@ namespace FriendlyCheckers{
         private void createUrl(List<Piece> removals, List<Piece> additions)
         {
 
+        }
+        public bool checkUser(string username)
+        {
+            return true;
+        }
+        public SaveData[] getSaveData(string username)
+        {
+            return this.saveData;
+        }
+        public GameData getGameData(int matchID)
+        {
+            return this.gameData;
         }
         public bool writeToServer(string username, int gameID, int matchID, Move move)
         {
@@ -288,8 +302,6 @@ namespace FriendlyCheckers{
             }
              */
         }
-        public bool checkUser(string username);
-        public SaveData[] getSaveData(string username);
-        public GameData getGameData(int matchID);
+
     }
 }
