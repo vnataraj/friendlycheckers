@@ -23,13 +23,37 @@ namespace FriendlyCheckers {
         public void setColor(PieceColor color) { this.myColor = color; }
         public String getName() { return myName; }
         public PieceColor getColor() { return myColor; }
-        public Move getEasyMove(GameLogic logic)
+        public MoveAttempt getEasyMove(GameLogic logic)
         {
             return null; //stub
         }
-        public Move getHardMove(GameLogic logic)
+        public MoveAttempt getHardMove(GameLogic logic)
         {
             return null; //stub
+        }
+    }
+    public class MoveAttempt { 
+        int yStart; 
+        int xStart;
+        int yEnd;
+        int xEnd; 
+        public MoveAttempt(int yStart, int xStart, int yEnd, int xEnd) { 
+            this.yStart = yStart; 
+            this.xStart = xStart; 
+            this.yEnd = yEnd; 
+            this.xEnd = xEnd; 
+        }
+        public int getYStart() { 
+            return yStart; 
+        }
+        public int getXStart() {
+            return xStart; 
+        }
+        public int getYEnd() { 
+            return yEnd; 
+        }
+        public int getXEnd() { 
+            return xEnd; 
         }
     }
 }

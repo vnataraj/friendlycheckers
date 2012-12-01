@@ -397,6 +397,10 @@ namespace FriendlyCheckers {
             return p.getColor() == this.whoseMove(); 
         }
 
+        public Move makeMove(MoveAttempt a) {
+            return makeMove(a.getYStart(), a.getXStart(), a.getYEnd(), a.getXEnd());
+        }
+
         public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
             Piece start = board.getCellContents(yStart, xStart);
             Piece end = board.getCellContents(yEnd, xEnd);
