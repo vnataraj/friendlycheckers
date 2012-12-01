@@ -463,6 +463,17 @@ namespace FriendlyCheckers {
         }
 
         public GameStatus getGameStatus() {
+            if (!canJumpSomewhere() && !canMoveSomewhere()) {
+                if (whoseMove() == PieceColor.BLACK) {
+                    if (redPieces < 0) {
+                        return GameStatus.REDWINS;
+                    }
+                } else {
+                    if (blackPieces < 0) {
+                        return GameStatus.BLACKWINS;
+                    }
+                }
+            }
             if (blackPieces > 0) {
                 if (redPieces == 0) {
                     return GameStatus.BLACKWINS;
@@ -475,6 +486,27 @@ namespace FriendlyCheckers {
                 return GameStatus.NOWINNER;
             }
             return GameStatus.DRAW;
+        }
+
+        private List<Vector> getDoableMoves(Piece p) {
+            Vector[] moves = getPossibleMoves(p.getColor(), p.getType());
+            List<Vector> doable = new List<Vector>();
+
+            foreach (Vector move in moves) {
+                Vector endLoc = move.add(p.getCoordinates());
+                Piece endP;
+                try {
+                    endP = board.getCellContents(endLoc);
+                } catch (CellOutOfBoundsException) {
+                    continue;
+                }
+                if (endP != null) {
+                    continue;
+                }
+                doable.Add(new Vector(move));
+            }
+
+            return doable;
         }
 
         private List<Vector> getDoableJumps(Piece p) { 
@@ -509,6 +541,25 @@ namespace FriendlyCheckers {
             }
 
             return doable; 
+        }
+
+        private bool canMoveSomewhere() {
+            PieceColor jumperColor = this.whoseMove();
+            for (int y = 0; y < board.getHeight(); y++) {
+                for (int x = 0; x < board.getHeight(); x++) {
+                    Piece p = board.getCellContents(y, x);
+                    if (p == null) {
+                        continue;
+                    }
+                    if (p.getColor() != jumperColor) {
+                        continue;
+                    }
+                    if (getDoableJumps(p).Count > 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private bool canJumpSomewhere() {
