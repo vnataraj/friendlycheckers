@@ -25,9 +25,7 @@ namespace FriendlyCheckers {
 
     public enum PieceColor {RED, BLACK};
     public enum PieceType {REGULAR, KING};
-
-
-
+    public enum GameStatus {NOWINNER, REDWINS, BLACKWINS}; 
     
     public class UserGame { 
         int gameID; 
@@ -233,7 +231,7 @@ namespace FriendlyCheckers {
             return getCellContents(v.getY(), v.getX());
         }
         public Piece getCellContents(int y, int x) {
-            if (!(x < width) || !(y < height) || !(x > 0) || !(y > 0)) {
+            if (!(x < width) || !(y < height) || !(x >= 0) || !(y >= 0)) {
                 throw new CellOutOfBoundsException();
             }
             return grid[y,x].getPiece(); 
@@ -409,13 +407,22 @@ namespace FriendlyCheckers {
             return newP; 
         }
 
+        public GameStatus getGameStatus() {
+            return GameStatus.NOWINNER; 
+        }
+
         private List<Vector> getDoableJumps(Piece p) { 
             Vector[] jumps = getPossibleJumps(p.getColor(), p.getType());
             List<Vector> doable = new List<Vector>();
 
             foreach (Vector jump in jumps) {
                 Vector endLoc = jump.add(p.getCoordinates());
-                Piece endP = board.getCellContents(endLoc);
+                Piece endP;
+                try {
+                    endP = board.getCellContents(endLoc);
+                } catch (CellOutOfBoundsException) {
+                    continue;
+                }
                 if (endP != null) {
                     continue;
                 }
