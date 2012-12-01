@@ -110,7 +110,7 @@ namespace FriendlyCheckers
         }
         private void createPieces()
         {
-            logic = new GameLogic(row_W, row_W);
+            logic = new GameLogic(row_W, row_W, FORCE_JUMP);
             pieces = new Checker[8,8];
             int row = 0, col = 0;
             for (int k = 0; k < 24; k++)
