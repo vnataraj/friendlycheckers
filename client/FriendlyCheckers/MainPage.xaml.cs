@@ -469,9 +469,15 @@ namespace FriendlyCheckers
             Lime.R = Lime.B = 0;
             Lime.G = 255;
             Lime.A = 255;
-            AvailableRect.Foreground = new SolidColorBrush(Lime);
-            AvailableRect.BorderBrush = new SolidColorBrush(Lime);
-            AvailableRect.Content = "Available";
+
+            Color Invalid = new Color();
+            Invalid.G = Lime.B = 0;
+            Invalid.R = 255;
+            Invalid.A = 255;
+
+            AvailableRect.Foreground = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Lime);
+            AvailableRect.BorderBrush = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Lime);
+            AvailableRect.Content = UserName.Text.Equals("")?"Unavailable":"Available";
         }
     }
     public class BoardSpace
