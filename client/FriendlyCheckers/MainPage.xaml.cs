@@ -360,6 +360,14 @@ namespace FriendlyCheckers
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
+        public static void MakeAIMove(MoveAttempt attempt)
+        {
+            handleHighlighting(attempt.getXStart(), attempt.getYStart());
+            //
+            System.Threading.Thread.Sleep(50);
+            //
+            MakeMove(attempt.getXEnd(), attempt.getYEnd());
+        }
         public static void MakeMove(int boardX, int boardY)
         {
             if (wait_for_timer || wait_for_computer) return;
@@ -406,20 +414,23 @@ namespace FriendlyCheckers
                 rotateBoard180();
             else if (game_state == GameState.SINGLE_PLAYER)
             {
+                MessageBox.Show("Computer's turn.");
                 wait_for_computer = !wait_for_computer;
-                if (wait_for_computer)
+                if (wait_for_computer && logic.whoseMove().Equals(PieceColor.RED))
                 {
                     MoveAttempt a;
-                    if(DIFFICULT)
-                        a = computerPlayer.getHardMove(new GameLogic(logic)); 
+                    if (DIFFICULT)
+                        a = computerPlayer.getHardMove(new GameLogic(logic));
                     else
                         a = computerPlayer.getEasyMove(new GameLogic(logic));
 
-                    Move m = logic.makeMove(a); 
+                    Move m = logic.makeMove(a);
                     handleMove(m);
                     TURN_TIMER.Start();
                     wait_for_timer = true;
                 }
+                else
+                    wait_for_computer = false;
             }
         }
         private static void handleMove(Move move)
