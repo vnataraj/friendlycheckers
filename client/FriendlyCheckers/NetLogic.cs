@@ -103,6 +103,7 @@ namespace FriendlyCheckers{
             reader = new StreamReader(dataStream);
             responseFromServer = reader.ReadToEnd();
             this.communication = true;
+            System.Diagnostics.Debug.WriteLine("Communication is true!!");
             dataStream.Close();
             reader.Close();
             response.Close();
@@ -111,12 +112,9 @@ namespace FriendlyCheckers{
         }
         private void checker(string responseFromServer)
         {
-            if (responseFromServer.Contains(loginSuccess))
-            {
-                this.getLoginState = true;
-                return;
-            }
-            else if (responseFromServer.Contains(queueMatchSuccess))
+            System.Diagnostics.Debug.WriteLine("response from server is " + responseFromServer);
+            
+            if (responseFromServer.Contains(queueMatchSuccess))
             {
                 this.getQueueState = true;
                 return;
@@ -144,6 +142,12 @@ namespace FriendlyCheckers{
             else if (responseFromServer.Contains(checkUserExistsSuccess))
             {
                 this.checkUserExistsState = true;
+                System.Diagnostics.Debug.WriteLine("set user to exists");
+                return;
+            }
+            else if (responseFromServer.Contains(loginSuccess))
+            {
+                this.getLoginState = true;
                 return;
             }
             else if (responseFromServer.Contains(loginFailure))
@@ -190,6 +194,7 @@ namespace FriendlyCheckers{
             {
                 if (c==100)
                 {
+                    System.Diagnostics.Debug.WriteLine("c is : " + c.ToString());
                     break;
                 }
                 c++;
@@ -204,17 +209,18 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+                waitForCommunication();
                 System.Diagnostics.Debug.WriteLine("got here");
-                //waitForCommunication();
             }
             catch (WebException e)
             {
-                Console.WriteLine("Caught exception : " + e.ToString());  //...
+                System.Diagnostics.Debug.WriteLine("Caught exception : " + e.ToString());  //...
                 CheckUserException cue = new CheckUserException();
                 throw cue;
             }
             if (this.checkUserExistsState)
             {
+                System.Diagnostics.Debug.WriteLine("USER EXISTS is true");
                 this.checkUserExistsState = false;
                 return true;
             }
@@ -263,7 +269,8 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                //waitForCommunication();
+                System.Diagnostics.Debug.WriteLine("Got Here");
+                waitForCommunication();
                }
             catch (WebException e)
             {
@@ -273,6 +280,7 @@ namespace FriendlyCheckers{
             }
             if (this.getLoginState)
             {
+                System.Diagnostics.Debug.WriteLine("LoginState is true");
                 this.getLoginState = false;
                 return true;
             }
