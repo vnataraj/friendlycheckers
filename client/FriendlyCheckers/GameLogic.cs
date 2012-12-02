@@ -341,7 +341,11 @@ namespace FriendlyCheckers {
             this.moveNumber = g.moveNumber;
             this.blackPieces = g.blackPieces;
             this.redPieces = g.redPieces;
-            this.multiJumpLoc = new Vector(g.multiJumpLoc);
+            if (multiJumpLoc != null) {
+                this.multiJumpLoc = new Vector(g.multiJumpLoc);
+            } else {
+                this.multiJumpLoc = null;
+            }
             this.turnNumber = g.turnNumber; 
         }
 
@@ -584,8 +588,27 @@ namespace FriendlyCheckers {
             return doable; 
         }
 
-        //TODO
-        //public getAnyDoableMove
+        public MoveAttempt getAnyDoableMoveAttempt() { 
+            PieceColor jumperColor = this.whoseMove();
+            for (int y = 0; y < board.getHeight(); y++) {
+                for (int x = 0; x < board.getHeight(); x++) {
+                    Piece p = board.getCellContents(y, x);
+                    if (p == null) {
+                        continue;
+                    }
+                    if (p.getColor() != jumperColor) {
+                        continue;
+                    }
+                    List<Vector> vectors = getDoableMoves(p); 
+                    if (vectors.Count > 0) {
+                        System.Diagnostics.Debug.WriteLine("can jump somewhere returning moveattempt for" +y+" "+x);
+                        return new MoveAttempt(y, x, y+vectors[0].getY(), x+vectors[0].getX());
+                    }
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("can move somewhere returning false");
+            return null;
+        }
 
         private bool canMoveSomewhere() {
             PieceColor jumperColor = this.whoseMove();

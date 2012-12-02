@@ -409,12 +409,14 @@ namespace FriendlyCheckers
                 wait_for_computer = !wait_for_computer;
                 if (wait_for_computer)
                 {
-                    /*Move m;
+                    MoveAttempt a;
                     if(DIFFICULT)
-                        m = computerPlayer.getHardMove(logic); 
+                        a = computerPlayer.getHardMove(new GameLogic(logic)); 
                     else
-                        m = computerPlayer.getEasyMove(logic);
-                    handleMove(m);*/
+                        a = computerPlayer.getEasyMove(new GameLogic(logic));
+
+                    Move m = logic.makeMove(a); 
+                    handleMove(m);
                     TURN_TIMER.Start();
                     wait_for_timer = true;
                 }
