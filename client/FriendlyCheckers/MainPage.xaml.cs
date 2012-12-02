@@ -414,7 +414,7 @@ namespace FriendlyCheckers
                 rotateBoard180();
             else if (game_state == GameState.SINGLE_PLAYER)
             {
-                MessageBox.Show("Computer's turn.");
+                //MessageBox.Show("Computer's turn.");
                 wait_for_computer = !wait_for_computer;
                 if (wait_for_computer && logic.whoseMove().Equals(PieceColor.RED))
                 {
