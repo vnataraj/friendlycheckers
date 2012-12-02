@@ -58,13 +58,13 @@ namespace FriendlyCheckers {
     }
 
     public class Move { // this is the api to give data to networking (and maybe GUI)
-        int moveNumber;
+        int turnNumber;
         List<Piece> removals;
         List<Piece> additions;
         PieceColor player; 
         
-        public Move(int moveNumber, List<Piece> removals, List<Piece> additions, PieceColor player) {
-            this.moveNumber = moveNumber;
+        public Move(int turnNumber, List<Piece> removals, List<Piece> additions, PieceColor player) {
+            this.turnNumber = turnNumber;
             this.removals = removals;
             this.additions = additions;
             this.player = player; 
@@ -74,8 +74,8 @@ namespace FriendlyCheckers {
             return this.player; 
         }
 
-        public int getMoveNumber() {
-            return moveNumber;
+        public int getTurnNumber() {
+            return turnNumber;
         }
 
         public List<Piece> getRemovals(){

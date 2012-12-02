@@ -186,8 +186,12 @@ namespace FriendlyCheckers{
         private void waitForCommunication()
         {
             int c = 0;
-            while(!communication || c<100)
+            while(!communication)
             {
+                if (c==100)
+                {
+                    break;
+                }
                 c++;
             }
             this.communication = false;
@@ -200,7 +204,8 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-               // waitForCommunication();
+                System.Diagnostics.Debug.WriteLine("got here");
+                //waitForCommunication();
             }
             catch (WebException e)
             {
@@ -259,7 +264,6 @@ namespace FriendlyCheckers{
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
                 //waitForCommunication();
-                this.communication = false;
                }
             catch (WebException e)
             {
