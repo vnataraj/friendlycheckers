@@ -15,36 +15,45 @@ namespace FriendlyCheckers
         public DataHandler()
         {
             this.data_file_name = "fc4.dat";
-            this.username = "";
-            this.password = "";
+            this.username = this.password = "";
+            loadCreds();
         }
-        public void saveGame(int gameID, Board b, PieceColor whoseTurn)
-        {   
-            saveGame(gameID, b, whoseTurn, "Player 1", "Player 2");
-        }
-        public void saveGame(int gameID, Board b, PieceColor whoseTurn, String p1, String p2)
+        public void saveCreds()
         {
             IsolatedStorageFile myIsolatedStorage = IsolatedStorageFile.GetUserStoreForApplication();
-            IsolatedStorageFileStream fileStream = new IsolatedStorageFileStream(data_file_name, FileMode.Append, myIsolatedStorage);
+            IsolatedStorageFileStream fileStream = new IsolatedStorageFileStream(data_file_name, FileMode.Create, myIsolatedStorage);
             StreamWriter writer = new StreamWriter(fileStream);
-            writer.Write(gameID);
+            writer.WriteLine(username);
+            writer.WriteLine(password);
             writer.Close();
         }
-        public void loadGame(int gameID)
+        public void loadCreds()
         {
-            String result = "";
-            //this verse is loaded for the first time so fill it from the text file
             IsolatedStorageFile ISF = IsolatedStorageFile.GetUserStoreForApplication();
             IsolatedStorageFileStream FS = ISF.OpenFile(data_file_name, FileMode.Open, FileAccess.Read);
             StreamReader SR = new StreamReader(FS);
+
+            Boolean first = true;
             while (!SR.EndOfStream)
-                result += SR.ReadLine();
+            {
+                if (first)
+                    username = SR.ReadLine();
+                else
+                    password = SR.ReadLine();
+                first = false;
+            }
+            if (username==null || password==null || username.Equals("") || password.Equals(""))
+                username = password = "";
+            SR.Close();
         }
+        public String getUserName() { return username; }
+        public String getPassword() { return password; }
         public void setCreds(String username, String password)
         {
             if (username.Equals("") || password.Equals("")) return;
             this.username = username;
             this.password = password;
+            saveCreds();
         }
         public Boolean hasCreds()
         {
@@ -69,15 +78,19 @@ namespace FriendlyCheckers
         private int matchID;
         private string opponent;
         private int numMoves;
-
-        public SaveData(int matchID, string opponent, int numMoves)
+        private PieceColor myColor, whoseMove;
+        public SaveData(int matchID, string opponent, int numMoves, PieceColor myColor, PieceColor whoseMove)
         {
             this.matchID = matchID;
             this.opponent = opponent;
             this.numMoves = numMoves;
+            this.myColor = myColor;
+            this.whoseMove = whoseMove;
         }
         public int getMatchID() { return matchID; }
         public string getOpponent() { return opponent; }
         public int getNumMoves() { return numMoves; }
+        public PieceColor getPlayerColor() { return myColor; }
+        public PieceColor getWhoseTurn() { return whoseMove; }
     }
 }

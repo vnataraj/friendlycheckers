@@ -200,7 +200,7 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                waitForCommunication();
+               // waitForCommunication();
             }
             catch (WebException e)
             {
@@ -258,7 +258,7 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                waitForCommunication();
+                //waitForCommunication();
                 this.communication = false;
                }
             catch (WebException e)
