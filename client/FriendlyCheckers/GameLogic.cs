@@ -32,17 +32,6 @@ namespace FriendlyCheckers {
     public enum PieceType {REGULAR, KING};
     public enum GameStatus {NOWINNER, REDWINS, BLACKWINS, DRAW};
 
-    //class scheduled for deletion. call GameLogic.getEasyMove, etc. instead.
-    public class Player {
-        public Player(String name, PieceColor color) {
-        }
-        public MoveAttempt getEasyMove(GameLogic logic) {
-            return logic.getEasyMove(); //stub
-        }
-        public MoveAttempt getHardMove(GameLogic logic) {
-            return logic.getHardMove(); //stub
-        }
-    }
     public class MoveAttempt {
         int yStart;
         int xStart;
