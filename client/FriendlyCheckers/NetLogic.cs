@@ -80,6 +80,7 @@ namespace FriendlyCheckers{
         private bool writeState;
         private bool getPollRequestState;
         private bool checkUserExistsState;
+        private bool communication;
         
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.getQueueState = false;
@@ -89,6 +90,7 @@ namespace FriendlyCheckers{
             this.getPollMatchState = false;
             this.writeState = false;
             this.checkUserExistsState = false;
+            this.communication=false;
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
@@ -100,6 +102,7 @@ namespace FriendlyCheckers{
             Stream dataStream = response.GetResponseStream();
             reader = new StreamReader(dataStream);
             responseFromServer = reader.ReadToEnd();
+            this.communication = true;
             dataStream.Close();
             reader.Close();
             response.Close();
@@ -180,6 +183,14 @@ namespace FriendlyCheckers{
         private void parseUrl(string[] a)
         {
         }
+        private void waitForCommunication()
+        {
+            while(!communication)
+            {
+
+            }
+            return;
+        }
         public bool checkUser(string username)
         {
             serverpath = server + "?message=CheckUser&" + "Username=" + username;
@@ -187,6 +198,8 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+                waitForCommunication();
+                this.communication = false;
             }
             catch (WebException e)
             {
@@ -244,6 +257,8 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+                waitForCommunication();
+                this.communication = false;
                }
             catch (WebException e)
             {
