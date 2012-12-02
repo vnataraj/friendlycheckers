@@ -30,7 +30,43 @@ namespace FriendlyCheckers {
 
     public enum PieceColor {RED, BLACK};
     public enum PieceType {REGULAR, KING};
-    public enum GameStatus {NOWINNER, REDWINS, BLACKWINS, DRAW}; 
+    public enum GameStatus {NOWINNER, REDWINS, BLACKWINS, DRAW};
+
+    //class scheduled for deletion. call GameLogic.getEasyMove, etc. instead.
+    public class Player {
+        public Player(String name, PieceColor color) {
+        }
+        public MoveAttempt getEasyMove(GameLogic logic) {
+            return logic.getEasyMove(); //stub
+        }
+        public MoveAttempt getHardMove(GameLogic logic) {
+            return logic.getHardMove(); //stub
+        }
+    }
+    public class MoveAttempt {
+        int yStart;
+        int xStart;
+        int yEnd;
+        int xEnd;
+        public MoveAttempt(int yStart, int xStart, int yEnd, int xEnd) {
+            this.yStart = yStart;
+            this.xStart = xStart;
+            this.yEnd = yEnd;
+            this.xEnd = xEnd;
+        }
+        public int getYStart() {
+            return yStart;
+        }
+        public int getXStart() {
+            return xStart;
+        }
+        public int getYEnd() {
+            return yEnd;
+        }
+        public int getXEnd() {
+            return xEnd;
+        }
+    }
 
     public class Move { // this is the api to give data to networking (and maybe GUI)
         int moveNumber;
@@ -579,6 +615,7 @@ namespace FriendlyCheckers {
                 if (middleP == null) {
                     continue;
                 }
+
                 if (middleP.getColor() == p.getColor()) {
                     continue;
                 }
@@ -586,6 +623,13 @@ namespace FriendlyCheckers {
             }
 
             return doable; 
+        }
+
+        public MoveAttempt getEasyMove() {
+            return getAnyDoableMoveJump(); //stub
+        }
+        public MoveAttempt getHardMove() {
+            return getAnyDoableMoveJump(); //stub
         }
 
         public MoveAttempt getAnyDoableMoveJump() {
