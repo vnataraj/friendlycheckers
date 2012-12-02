@@ -185,10 +185,12 @@ namespace FriendlyCheckers{
         }
         private void waitForCommunication()
         {
-            while(!communication)
+            int c = 0;
+            while(!communication || c<100)
             {
-
+                c++;
             }
+            this.communication = false;
             return;
         }
         public bool checkUser(string username)
@@ -199,7 +201,6 @@ namespace FriendlyCheckers{
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
                 waitForCommunication();
-                this.communication = false;
             }
             catch (WebException e)
             {
