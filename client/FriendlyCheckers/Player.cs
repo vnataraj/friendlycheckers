@@ -25,11 +25,11 @@ namespace FriendlyCheckers {
         public PieceColor getColor() { return myColor; }
         public MoveAttempt getEasyMove(GameLogic logic)
         {
-            return logic.getAnyDoableMoveAttempt(); //stub
+            return logic.getAnyDoableMoveJump(); //stub
         }
         public MoveAttempt getHardMove(GameLogic logic)
         {
-            return logic.getAnyDoableMoveAttempt(); //stub
+            return logic.getAnyDoableMoveJump(); //stub
         }
     }
     public class MoveAttempt { 

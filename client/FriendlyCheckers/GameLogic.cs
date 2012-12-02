@@ -26,6 +26,7 @@ namespace FriendlyCheckers {
     public class PlayerMustJumpException : InvalidMoveException { }
     public class WrongMultiJumpPieceException : InvalidMoveException {} 
     public class BadMoveNumberException : GameLogicException { }
+    public class NoMovesLeftException : GameLogicException { }
 
     public enum PieceColor {RED, BLACK};
     public enum PieceType {REGULAR, KING};
@@ -254,7 +255,6 @@ namespace FriendlyCheckers {
         }
     }
 
-    //TODO: implement turnNumber versus moveNumber
     public class GameLogic {
         Board board; 
         int moveNumber;
@@ -588,6 +588,18 @@ namespace FriendlyCheckers {
             return doable; 
         }
 
+        public MoveAttempt getAnyDoableMoveJump() {
+            MoveAttempt jump = getAnyDoableJumpAttempt();
+            if (jump != null) {
+                return jump;
+            }
+            MoveAttempt move = getAnyDoableMoveAttempt();
+            if (move != null) {
+                return move;
+            }
+            throw new NoMovesLeftException(); 
+        }
+
         public MoveAttempt getAnyDoableMoveAttempt() { 
             PieceColor jumperColor = this.whoseMove();
             for (int y = 0; y < board.getHeight(); y++) {
@@ -611,27 +623,10 @@ namespace FriendlyCheckers {
         }
 
         private bool canMoveSomewhere() {
-            PieceColor jumperColor = this.whoseMove();
-            for (int y = 0; y < board.getHeight(); y++) {
-                for (int x = 0; x < board.getHeight(); x++) {
-                    Piece p = board.getCellContents(y, x);
-                    if (p == null) {
-                        continue;
-                    }
-                    if (p.getColor() != jumperColor) {
-                        continue;
-                    }
-                    if (getDoableMoves(p).Count > 0) {
-                        System.Diagnostics.Debug.WriteLine("can jump somewhere returning true for" +y+" "+x);
-                        return true;
-                    }
-                }
-            }
-            System.Diagnostics.Debug.WriteLine("can move somewhere returning false");
-            return false;
+            return getAnyDoableMoveAttempt() != null;
         }
 
-        private bool canJumpSomewhere() {
+        public MoveAttempt getAnyDoableJumpAttempt() {
             PieceColor jumperColor = this.whoseMove();
             for (int y = 0; y < board.getHeight(); y++) {
                 for (int x = 0; x < board.getHeight(); x++) {
@@ -642,14 +637,19 @@ namespace FriendlyCheckers {
                     if (p.getColor() != jumperColor) {
                         continue;
                     }
-                    if (getDoableJumps(p).Count > 0) {
-                        System.Diagnostics.Debug.WriteLine("can jump somewhere returning true. "+y+" "+x);
-                        return true;
+                    List<Vector> doable = getDoableJumps(p);
+                    if (doable.Count > 0) {
+                        System.Diagnostics.Debug.WriteLine("can jump somewhere returning true. " + y + " " + x);
+                        return new MoveAttempt(y, x, y + doable[0].getY(), x + doable[0].getX()); 
                     }
                 }
             }
             System.Diagnostics.Debug.WriteLine("can jump somewhere returning false");
-            return false;
+            return null;
+        }
+
+        private bool canJumpSomewhere() {
+            return getAnyDoableJumpAttempt() != null; 
         }
 
         private bool moveIsJump(Vector start, int yEnd, int xEnd) {
