@@ -20,31 +20,42 @@ namespace FriendlyCheckers
         }
         public void saveCreds()
         {
-            IsolatedStorageFile myIsolatedStorage = IsolatedStorageFile.GetUserStoreForApplication();
-            IsolatedStorageFileStream fileStream = new IsolatedStorageFileStream(data_file_name, FileMode.Create, myIsolatedStorage);
-            StreamWriter writer = new StreamWriter(fileStream);
-            writer.WriteLine(username);
-            writer.WriteLine(password);
-            writer.Close();
+            try
+            {
+                IsolatedStorageFile myIsolatedStorage = IsolatedStorageFile.GetUserStoreForApplication();
+                IsolatedStorageFileStream fileStream = new IsolatedStorageFileStream(data_file_name, FileMode.Create, myIsolatedStorage);
+                StreamWriter writer = new StreamWriter(fileStream);
+                writer.WriteLine(username);
+                writer.WriteLine(password);
+                writer.Close();
+            }
+            catch (IsolatedStorageException) { };
         }
         public void loadCreds()
         {
-            IsolatedStorageFile ISF = IsolatedStorageFile.GetUserStoreForApplication();
-            IsolatedStorageFileStream FS = ISF.OpenFile(data_file_name, FileMode.Open, FileAccess.Read);
-            StreamReader SR = new StreamReader(FS);
-
-            Boolean first = true;
-            while (!SR.EndOfStream)
+            try
             {
-                if (first)
-                    username = SR.ReadLine();
-                else
-                    password = SR.ReadLine();
-                first = false;
+                IsolatedStorageFile ISF = IsolatedStorageFile.GetUserStoreForApplication();
+                IsolatedStorageFileStream FS = ISF.OpenFile(data_file_name, FileMode.Open, FileAccess.Read);
+                StreamReader SR = new StreamReader(FS);
+
+                Boolean first = true;
+                while (!SR.EndOfStream)
+                {
+                    if (first)
+                        username = SR.ReadLine();
+                    else
+                        password = SR.ReadLine();
+                    first = false;
+                }
+                if (username == null || password == null || username.Equals("") || password.Equals(""))
+                    username = password = "";
+                SR.Close();
             }
-            if (username==null || password==null || username.Equals("") || password.Equals(""))
+            catch (IsolatedStorageException)
+            {
                 username = password = "";
-            SR.Close();
+            }
         }
         public String getUserName() { return username; }
         public String getPassword() { return password; }
