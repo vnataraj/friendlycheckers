@@ -41,7 +41,7 @@ namespace FriendlyCheckers
         private static Boolean wait_for_timer = false, wait_for_computer = false;
         private static int row_W = 8;
         private static DispatcherTimer TURN_TIMER;
-        public enum GameState { OUT_OF_GAME, OPTIONS, ABOUT, CREDS, SAVE_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
+        public enum GameState { OUT_OF_GAME, END_GAME, OPTIONS, ABOUT, CREDS, SAVE_GAME, SINGLE_PLAYER, ONLINE_MULTI, LOCAL_MULTI };
         public static GameState game_state = GameState.OUT_OF_GAME;
 
         public MainPage()
@@ -395,7 +395,7 @@ namespace FriendlyCheckers
         public static void MakeMove(int boardX, int boardY)
         {
             if (wait_for_timer || wait_for_computer) return;
-            if (game_state == GameState.OUT_OF_GAME || (checkerX == -1 && checkerY == -1)) return;
+            if (game_state == GameState.OUT_OF_GAME || game_state == GameState.END_GAME||(checkerX == -1 && checkerY == -1)) return;
             Move m;
             try
             {
@@ -406,20 +406,6 @@ namespace FriendlyCheckers
                 handleHighlighting(checkerX, checkerY);
                 m = logic.makeMove(locY, locX, (!rotated ? boardY : (row_W - boardY - 1)), (!rotated ? boardX : (row_W - boardX - 1)));
                 handleMove(m);
-
-                GameStatus status = logic.getGameStatus();
-                if (status == GameStatus.BLACKWINS) {
-                    MessageBox.Show("Black player wins!");
-                    System.Diagnostics.Debug.WriteLine("game status is BLACKWINS");
-                } else if (status == GameStatus.REDWINS) {
-                    MessageBox.Show("Red player wins!");
-                    System.Diagnostics.Debug.WriteLine("game status is REDWINS");
-                } else if (status == GameStatus.DRAW) {
-                    MessageBox.Show("Game is a draw.");
-                    System.Diagnostics.Debug.WriteLine("game status is DRAW");
-                } else {
-                    System.Diagnostics.Debug.WriteLine("game status is NOWINNER");
-                }
 
                 if (logic.whoseMove().Equals(whoseTurn)&& !FORCE_JUMP && MessageBox.Show("Double Jump Available!", "Take the double jump?", MessageBoxButton.OKCancel) == MessageBoxResult.OK) 
                 {
@@ -436,8 +422,37 @@ namespace FriendlyCheckers
             catch (InvalidMoveException) { }
             checkerX = checkerY = -1;
         }
+        private static Boolean checkEndGame()
+        {
+            GameStatus status = logic.getGameStatus();
+            if (status == GameStatus.BLACKWINS)
+            {
+                MessageBox.Show("Black player wins!");
+                System.Diagnostics.Debug.WriteLine("game status is BLACKWINS");
+                return true;
+            }
+            else if (status == GameStatus.REDWINS)
+            {
+                MessageBox.Show("Red player wins!");
+                System.Diagnostics.Debug.WriteLine("game status is REDWINS");
+                return true;
+            }
+            else if (status == GameStatus.DRAW)
+            {
+                MessageBox.Show("Game is a draw.");
+                System.Diagnostics.Debug.WriteLine("game status is DRAW");
+                return true;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("game status is NOWINNER");
+                return false;
+            }
+        }
         private void Make_Educated_Move(object sender, EventArgs e)
         {
+            if (game_state == GameState.END_GAME) return;
+
             MoveAttempt a;
             if (DIFFICULT)
                 a = logic.getHardMove();
@@ -446,12 +461,18 @@ namespace FriendlyCheckers
 
             Move m = logic.makeMove(a);
             handleMove(m);
+
             TURN_TIMER.Start();
             wait_for_timer = true;
         }
         private void timerTick(object o, EventArgs e)
         {
             TURN_TIMER.Stop();
+            if (checkEndGame())
+            {
+                game_state = GameState.END_GAME;
+                return;
+            }
             WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
             Moves.Text = "Moves: "+logic.getMoveNumber();
             wait_for_timer = false;
@@ -509,7 +530,7 @@ namespace FriendlyCheckers
         }
         public static void handleHighlighting(int x, int y)
         {
-            if (wait_for_timer || wait_for_computer) return;
+            if (wait_for_timer || wait_for_computer || game_state==GameState.END_GAME) return;
             if (!logic.isSelectable(y,x))return;
 
             Checker HIGHLIGHTED_PIECE = pieces[x, y];
