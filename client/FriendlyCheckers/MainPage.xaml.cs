@@ -36,7 +36,6 @@ namespace FriendlyCheckers
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
         private List<SaveDataBox> saveButtons;
-        private Player computerPlayer;
 
         private static Boolean rotated = false;
         private static Boolean wait_for_timer = false, wait_for_computer = false;
@@ -53,7 +52,6 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(CredPanel);
             LayoutRoot.Children.Remove(SaveGamePanel);
             checkerX = checkerY = -1;
-            computerPlayer = new Player("Computer", PieceColor.RED);
 
             dataDude = new DataHandler();
             UserName.Text = dataDude.getUserName();
@@ -172,6 +170,7 @@ namespace FriendlyCheckers
         {
             LayoutRoot.Children.Remove(HiddenPanel);
             ContentPanel.Children.Remove(quit);
+            ContentPanel.Children.Remove(Make_A_Move);
             ContentPanel.Children.Remove(WhoseTurn);
             ContentPanel.Children.Remove(Shader);
             ContentPanel.Children.Remove(Search);
@@ -180,6 +179,7 @@ namespace FriendlyCheckers
         {
             LayoutRoot.Children.Add(HiddenPanel);
             ContentPanel.Children.Add(quit);
+            ContentPanel.Children.Add(Make_A_Move);
             ContentPanel.Children.Add(WhoseTurn);
         }
         private void SinglePlayer_Setup(object sender, RoutedEventArgs e)
@@ -392,14 +392,6 @@ namespace FriendlyCheckers
         {
             GameData gameData = netLogic.getGameData(data.getMatchID());
         }
-        public static void MakeAIMove(MoveAttempt attempt)
-        {
-            handleHighlighting(attempt.getXStart(), attempt.getYStart());
-            //
-            System.Threading.Thread.Sleep(50);
-            //
-            MakeMove(attempt.getXEnd(), attempt.getYEnd());
-        }
         public static void MakeMove(int boardX, int boardY)
         {
             if (wait_for_timer || wait_for_computer) return;
@@ -444,7 +436,20 @@ namespace FriendlyCheckers
             catch (InvalidMoveException) { }
             checkerX = checkerY = -1;
         }
-        private void timerTick(object o, EventArgs sender)
+        private void Make_Educated_Move(object sender, EventArgs e)
+        {
+            MoveAttempt a;
+            if (DIFFICULT)
+                a = logic.getHardMove();
+            else
+                a = logic.getEasyMove();
+
+            Move m = logic.makeMove(a);
+            handleMove(m);
+            TURN_TIMER.Start();
+            wait_for_timer = true;
+        }
+        private void timerTick(object o, EventArgs e)
         {
             TURN_TIMER.Stop();
             WhoseTurn.Text = (logic.whoseMove().Equals(PieceColor.RED) ? "Red" : "Black") + " to move next.";
@@ -457,18 +462,7 @@ namespace FriendlyCheckers
                 //MessageBox.Show("Computer's turn.");
                 wait_for_computer = !wait_for_computer;
                 if (wait_for_computer && logic.whoseMove().Equals(PieceColor.RED))
-                {
-                    MoveAttempt a;
-                    if (DIFFICULT)
-                        a = computerPlayer.getHardMove(new GameLogic(logic));
-                    else
-                        a = computerPlayer.getEasyMove(new GameLogic(logic));
-
-                    Move m = logic.makeMove(a);
-                    handleMove(m);
-                    TURN_TIMER.Start();
-                    wait_for_timer = true;
-                }
+                    Make_Educated_Move(o, e);
                 else
                     wait_for_computer = false;
             }
