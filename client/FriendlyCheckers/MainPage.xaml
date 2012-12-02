@@ -47,22 +47,7 @@
             <TextBlock x:Name="Search" Text="Searching for Opponents..." FontSize="32" Style="{StaticResource PhoneTextNormalStyle}" Height="56" Margin="0,206,29,397" HorizontalAlignment="Right" Width="376" />
         </Grid>
         <Grid Name ="SaveGamePanel" Margin="0,139,0,74" Grid.RowSpan="2">
-           <!-- <Button Name="Save1" Click="Online_Multi_Setup" Foreground="DarkSlateGray" BorderBrush="DarkSlateGray" Height="100" HorizontalContentAlignment="Right" FontSize="30" Margin="-3,-50,3,428">jklemen</Button>
-            <Button Name="Save2" Click="Online_Multi_Setup" Height="100" HorizontalContentAlignment="Right" FontSize="30" Margin="-3,25,3,340">crouleau</Button>
-            <Button Name="Save3" Click="Online_Multi_Setup" Height="100" HorizontalContentAlignment="Right" FontSize="30" Margin="-3,105,3,250">vnataraj</Button>
-            <Button Name="Save4" Click="Online_Multi_Setup" Height="100" HorizontalContentAlignment="Right" FontSize="30" Margin="-3,175,3,157">cutlerr</Button>
-            <Button Name="Save5" Click="Online_Multi_Setup" Foreground="DarkSlateGray" BorderBrush="DarkSlateGray" Height="100" HorizontalContentAlignment="Right" FontSize="30" Margin="-3,245,3,64">richard</Button>
             <Button Name="NewGame" Click="NewGame_Setup" Height="80" FontSize="30" Margin="-6,458,6,16">Find Random Opponent</Button>
-            <TextBlock Text="11/29/2012" Foreground="DarkSlateGray" FontSize="24" Margin="164,24,180,501" Height="30"></TextBlock>
-            <TextBlock Text="11/28/2012" FontSize="24" Margin="164,105,180,420" Height="30"></TextBlock>
-            <TextBlock Text="11/27/2012" FontSize="24" Margin="164,190,180,335" Height="30"></TextBlock>
-            <TextBlock Text="11/26/2012" FontSize="24" Margin="164,272,180,253" Height="30"></TextBlock>
-            <TextBlock Text="11/25/2012" Foreground="DarkSlateGray" FontSize="24" Margin="164,353,180,172" Height="30"></TextBlock>
-            <TextBlock Text="Moves: 9" Foreground="DarkSlateGray" FontSize="24" Margin="24,24,320,501" Height="30"></TextBlock>
-            <TextBlock Text="Moves: 11" FontSize="24" Margin="24,105,320,420" Height="30"></TextBlock>
-            <TextBlock Text="Moves: 28" FontSize="24" Margin="24,190,320,335" Height="30"></TextBlock>
-            <TextBlock Text="Moves: 1" FontSize="24" Margin="24,272,320,253" Height="30"></TextBlock>
-            <TextBlock Text="Moves: 15" Foreground="DarkSlateGray" FontSize="24" Margin="24,353,320,172" Height="30"></TextBlock>-->
         </Grid>
         <StackPanel Name ="OptionsPanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <TextBlock x:Name="GameOptions" Text="Gameplay:" FontSize="28" Margin ="-10,20,10,0" Style="{StaticResource PhoneTextNormalStyle}" Height="40" HorizontalAlignment="Right" Width="454" />

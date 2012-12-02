@@ -35,6 +35,7 @@ namespace FriendlyCheckers
         private static NetworkLogic netLogic;
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
+        private List<SaveDataBox> saveButtons;
         private Player computerPlayer;
 
         private static Boolean rotated = false;
@@ -53,7 +54,11 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(SaveGamePanel);
             checkerX = checkerY = -1;
             computerPlayer = new Player("Computer", PieceColor.RED);
+
             dataDude = new DataHandler();
+            UserName.Text = dataDude.getUserName();
+            Password.Password = dataDude.getPassword();
+
             netLogic = new NetworkLogic();
 
             Color shade = new Color();
@@ -241,6 +246,18 @@ namespace FriendlyCheckers
             else
             {
                 LayoutRoot.Children.Add(SaveGamePanel);
+                saveButtons = new List<SaveDataBox>();
+                SaveData[] saveData = netLogic.getSaveData(dataDude.getUserName());
+                if (saveData == null) return;
+                foreach(UIElement child in SaveGamePanel.Children)
+                    SaveGamePanel.Children.Remove(child);
+                foreach (SaveData sd in saveData)
+                {
+                    SaveDataBox sdbox = new SaveDataBox(sd);
+                    saveButtons.Add(sdbox);
+                    sdbox.getButton().Click += SaveDataBoxClick;
+                    SaveGamePanel.Children.Add(sdbox.getButton());
+                }
             }
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
@@ -360,6 +377,21 @@ namespace FriendlyCheckers
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
+        private void SaveDataBoxClick(object sender, EventArgs e)
+        {
+            foreach (SaveDataBox box in saveButtons)
+            {
+                if (sender.Equals(box))
+                {
+                    LoadSaveGame(box.getSaveData());
+                    break;
+                }
+            }
+        }
+        public void LoadSaveGame(SaveData data)
+        {
+            GameData gameData = netLogic.getGameData(data.getMatchID());
+        }
         public static void MakeAIMove(MoveAttempt attempt)
         {
             handleHighlighting(attempt.getXStart(), attempt.getYStart());
@@ -375,6 +407,7 @@ namespace FriendlyCheckers
             Move m;
             try
             {
+                PieceColor whoseTurn = logic.whoseMove();
                 int locX = checkerX;
                 int locY = checkerY;
                 // Unhighlight the selected piece
@@ -396,9 +429,16 @@ namespace FriendlyCheckers
                     System.Diagnostics.Debug.WriteLine("game status is NOWINNER");
                 }
 
-
-                TURN_TIMER.Start();
-                wait_for_timer = true;
+                if (logic.whoseMove().Equals(whoseTurn)&& !FORCE_JUMP && MessageBox.Show("Double Jump Available!", "Take the double jump?", MessageBoxButton.OKCancel) == MessageBoxResult.OK) 
+                {
+                    logic.skipMultiJump();
+                    return;
+                }
+                else
+                {
+                    TURN_TIMER.Start();
+                    wait_for_timer = true;
+                }
             }
             catch (PieceWrongColorException) { MessageBox.Show("You cannot move your opponent's pieces!"); }
             catch (InvalidMoveException) { }
@@ -514,19 +554,37 @@ namespace FriendlyCheckers
         private void Process_Username(object sender, EventArgs e)
         {
             //logic to process username from server
-           // netLogic.processUsername(UserName.Text);
-            // GUI handling
-            AvailableRect.Foreground = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Valid);
-            AvailableRect.BorderBrush = new SolidColorBrush(UserName.Text.Equals("")?Invalid:Valid);
-            AvailableRect.Content = UserName.Text.Equals("")?"Unavailable":"Available";
+            //AvailableRect.Content = "Checking";
+            Boolean valid = netLogic.checkUser(UserName.Text);
+            AvailableRect.Foreground = new SolidColorBrush(valid ? Valid : Invalid);
+            AvailableRect.BorderBrush = new SolidColorBrush(valid ? Valid : Invalid);
+            AvailableRect.Content = valid ? "Available" : "Unavailable";
         }
         private void Login_Confirm(object sender, EventArgs e)
         {
             Boolean success = netLogic.login(UserName.Text, Password.Password);
-            LoginConfirm.Foreground = new SolidColorBrush(success? Valid : Invalid);
+            LoginConfirm.Foreground = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.BorderBrush = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.Content = success ? "Success" : "Failed";
+
+            if (success)
+                dataDude.setCreds(UserName.Text, Password.Password);
         }
+    }
+    public class SaveDataBox
+    {
+        private SaveData data;
+        private Button button;
+        public SaveDataBox(SaveData data) 
+        { 
+            this.data = data;
+            button = new Button();
+            button.Content = "Moves: "+data.getNumMoves()+"          "+data.getOpponent();
+            button.HorizontalContentAlignment = HorizontalAlignment.Right;
+            button.FontSize = 30;
+        }
+        public Button getButton() { return button; }
+        public SaveData getSaveData() { return data; }
     }
     public class BoardSpace
     {

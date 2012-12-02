@@ -19,6 +19,7 @@ namespace FriendlyCheckers{
     public class PollMatchException : System.Exception { }
     public class PollRequestException : System.Exception { }
     public class WriteToServerException : System.Exception { }
+    public class CheckUserException : System.Exception { }
     public class NetworkLogic
     {
 
@@ -62,12 +63,15 @@ namespace FriendlyCheckers{
         private static string pollRequestSuccess = "42.6";
         private static string acceptMatchSuccess="42.7";
         private static string pollMatchNoMoveSuccess="42.8";
+        private static string checkUserExistsSuccess = "42.10";
         private static string loginFailure = "666.1";
         private static string queueMatchFailure = "666.2";
         private static string requestMatchFailure = "666.3";
         private static string pollMatchFailure = "666.4";
         private static string writeToServerFailure = "666.5";
-        private static string pollRequestFailure = "666.6"; 
+        private static string pollRequestFailure = "666.6";
+        private static string getSaveDataFailure = "666.9";
+        private static string checkUserFailure = "666.10";
 
         private bool getLoginState;
         private bool getQueueState;
@@ -75,6 +79,8 @@ namespace FriendlyCheckers{
         private bool getPollMatchState;
         private bool writeState;
         private bool getPollRequestState;
+        private bool checkUserExistsState;
+        private bool communication;
         
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.getQueueState = false;
@@ -83,6 +89,8 @@ namespace FriendlyCheckers{
             this.getPollRequestState = false;
             this.getPollMatchState = false;
             this.writeState = false;
+            this.checkUserExistsState = false;
+            this.communication=false;
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
@@ -94,6 +102,7 @@ namespace FriendlyCheckers{
             Stream dataStream = response.GetResponseStream();
             reader = new StreamReader(dataStream);
             responseFromServer = reader.ReadToEnd();
+            this.communication = true;
             dataStream.Close();
             reader.Close();
             response.Close();
@@ -132,6 +141,11 @@ namespace FriendlyCheckers{
                 this.getRequestState = true;
                 return;
             }
+            else if (responseFromServer.Contains(checkUserExistsSuccess))
+            {
+                this.checkUserExistsState = true;
+                return;
+            }
             else if (responseFromServer.Contains(loginFailure))
             {
                 return;
@@ -156,15 +170,50 @@ namespace FriendlyCheckers{
             {
                 return;
             }
+            else if (responseFromServer.Contains(checkUserFailure))
+            {
+                return;
+            }
             return;
         }
         private void createUrl(List<Piece> removals, List<Piece> additions)
         {
-
+            
+        }
+        private void parseUrl(string[] a)
+        {
+        }
+        private void waitForCommunication()
+        {
+            int c = 0;
+            while(!communication || c<100)
+            {
+                c++;
+            }
+            this.communication = false;
+            return;
         }
         public bool checkUser(string username)
         {
-            return true;
+            serverpath = server + "?message=CheckUser&" + "Username=" + username;
+            try
+            {
+                request = (HttpWebRequest)WebRequest.Create(serverpath);
+                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+               // waitForCommunication();
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine("Caught exception : " + e.ToString());  //...
+                CheckUserException cue = new CheckUserException();
+                throw cue;
+            }
+            if (this.checkUserExistsState)
+            {
+                this.checkUserExistsState = false;
+                return true;
+            }
+            return false;
         }
         public SaveData[] getSaveData(string username)
         {
@@ -209,6 +258,8 @@ namespace FriendlyCheckers{
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+                //waitForCommunication();
+                this.communication = false;
                }
             catch (WebException e)
             {
