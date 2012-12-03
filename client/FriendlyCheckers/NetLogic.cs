@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace FriendlyCheckers{
     public class UnknownException : System.Exception { }
@@ -48,6 +49,7 @@ namespace FriendlyCheckers{
         private int moveNumber;
         private int gameID;
         private int matchID;
+        private static int defaultTimeout = 60 * 1000;
 
         private string username;
         private string opponentname;
@@ -75,6 +77,7 @@ namespace FriendlyCheckers{
         private static string checkUserFailure = "666.10";
         private static string getGameDataFailure = "666.12";
         private static string unknownError = "666.666";
+        private static ManualResetEvent allDone = new ManualResetEvent(false);
 
         private bool getLoginState;
         private bool getQueueState;
@@ -82,7 +85,7 @@ namespace FriendlyCheckers{
         private bool getPollMatchState;
         private bool writeState;
         private bool getPollRequestState;
-        private bool checkUserExistsState;
+        public bool checkUserExistsState;
         private bool getSaveDataState;
         private bool getGameDataState;
         private bool communication;
@@ -159,6 +162,7 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(loginSuccess))
             {
+                System.Diagnostics.Debug.WriteLine("bbbbb");
                 this.getLoginState = true;
                 return;
             }
@@ -204,24 +208,24 @@ namespace FriendlyCheckers{
             int c = 0;
             while(!communication)
             {
-                if (c==100)
+                if (c==1000000)
                 {
                     System.Diagnostics.Debug.WriteLine("c is : " + c.ToString());
                     break;
                 }
                 c++;
             }
-            this.communication = false;
             return;
         }
-        public bool checkUser(string username)
+        public bool checkUser(string username) //should be void
         {
+            this.checkUserExistsState = false;
             serverpath = server + "?message=CheckUser&" + "Username=" + username;
             try
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                waitForCommunication();
+                //waitForCommunication();
                 System.Diagnostics.Debug.WriteLine("got here");
             }
             catch (WebException e)
@@ -230,13 +234,15 @@ namespace FriendlyCheckers{
                 CheckUserException cue = new CheckUserException();
                 throw cue;
             }
-            if (this.checkUserExistsState)
+            return true;
+/*            if (this.checkUserExistsState)
             {
                 System.Diagnostics.Debug.WriteLine("USER EXISTS is true");
                 this.checkUserExistsState = false;
                 return true;
             }
             return false;
+ */
         }
         public SaveData[] getSaveData(string username)
         {
@@ -246,9 +252,9 @@ namespace FriendlyCheckers{
         {
             return this.gameData;
         }
-        public bool writeToServer(string username, int gameID, int matchID, Move move)
+        public bool writeToServer(string username, int gameID, SaveData savedata, GameData gamedata)
         {
-            serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&MatchID="+matchID.ToString()+"&Move="+move.ToString(); // parse move!!!
+            serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&MatchID="+savedata.getMatchID().ToString()+"&SaveData="+savedata.ToString()+"&GameData="+gamedata.ToString(); // parse move!!!
             try
             {
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
@@ -273,7 +279,7 @@ namespace FriendlyCheckers{
             return false;
         }
 
-        public bool login(string username, string password)
+        public bool login(string username, string password)// should be void
         {
 
             serverpath=server + "?message=Login&" + "Username=" + username + "&Password=" + password;
@@ -282,7 +288,7 @@ namespace FriendlyCheckers{
                 request = (HttpWebRequest)WebRequest.Create(serverpath);
                 request.BeginGetResponse(new AsyncCallback(requestHandler), request);
                 System.Diagnostics.Debug.WriteLine("Got Here");
-                waitForCommunication();
+                //waitForCommunication();
                }
             catch (WebException e)
             {
@@ -290,13 +296,16 @@ namespace FriendlyCheckers{
                 LoginException le = new LoginException();
                 throw le;
             }
-            if (this.getLoginState)
+            return true;
+     /*       if (this.getLoginState && this.communication)
             {
                 System.Diagnostics.Debug.WriteLine("LoginState is true");
                 this.getLoginState = false;
+                this.communication = false;
                 return true;
             }
             return false;
+      */
         }
         public bool queueMatch(string username, int gameID)
         {
