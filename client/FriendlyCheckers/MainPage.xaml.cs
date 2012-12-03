@@ -426,6 +426,7 @@ namespace FriendlyCheckers
             }
             catch (PieceWrongColorException) { }
             catch (PlayerMustJumpException) { MessageBox.Show("You must take an available jump!"); }
+            catch (WrongMultiJumpPieceException) { MessageBox.Show("You must finish the multijump!"); }
             catch (InvalidMoveException) { }
             catch (GameLogicException) { }
             checkerX = checkerY = -1;
@@ -459,8 +460,8 @@ namespace FriendlyCheckers
         }
         private void Make_Educated_Move(object sender, EventArgs e)
         {
-            if (game_state == GameState.END_GAME || wait_for_computer && sender.Equals(Make_A_Move)) return;
-            used_make_move = true;
+            if (game_state == GameState.END_GAME || (wait_for_computer && sender.Equals(Make_A_Move))) return;
+            if(sender.Equals(Make_A_Move))used_make_move = true;
             PieceColor whoseMove = logic.whoseMove();
             MoveAttempt a;
             if (DIFFICULT)
@@ -492,15 +493,10 @@ namespace FriendlyCheckers
                 // if black is making the jump
                 if (!last.Equals(PieceColor.RED) || (game_state != GameState.SINGLE_PLAYER))
                 {
-                    if (used_make_move || FORCE_JUMP)
+                    if (used_make_move)
                         Make_Educated_Move(o, e);
-                    else
-                    {
-                        if (MessageBox.Show("Double Jump Available!", "Take the double jump?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)
-                            logic.skipMultiJump();
-                        else
-                            Make_Educated_Move(o, e);
-                    }
+                    else if (!FORCE_JUMP && MessageBox.Show("Double Jump Available!", "Take the double jump?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)
+                        logic.skipMultiJump();
                 }
                 else
                 {

@@ -616,10 +616,10 @@ namespace FriendlyCheckers {
         }
 
         public MoveAttempt getEasyMove() {
-            return getAnyDoableMoveJump(); //stub
+            return getRandomDoableMoveJump();
         }
         public MoveAttempt getHardMove() {
-            return getAnyDoableMoveJump(); //stub
+            return getRandomDoableMoveJump();
         }
 
         public MoveAttempt getAnyDoableMoveJump() {
@@ -637,6 +637,26 @@ namespace FriendlyCheckers {
                 return move;
             }
             throw new NoMovesLeftException(); 
+        }
+        public MoveAttempt getRandomDoableMoveJump()
+        {
+            if (multiJumpLoc != null)
+            {
+                Vector doable = getDoableJumps(board.getCellContents(multiJumpLoc))[0];
+                return new MoveAttempt(multiJumpLoc.getY(), multiJumpLoc.getX(),
+                    multiJumpLoc.getY() + doable.getY(), multiJumpLoc.getX() + doable.getX());
+            }
+            MoveAttempt jump = getRandomDoableJumpAttempt();
+            if (jump != null)
+            {
+                return jump;
+            }
+            MoveAttempt move = getRandomDoableMoveAttempt();
+            if (move != null)
+            {
+                return move;
+            }
+            throw new NoMovesLeftException();
         }
 
         public MoveAttempt getAnyDoableMoveAttempt() { 
@@ -664,7 +684,75 @@ namespace FriendlyCheckers {
         private bool canMoveSomewhere() {
             return getAnyDoableMoveAttempt() != null;
         }
+        public List<MoveAttempt> getAllDoableMoveAttempts()
+        {
+            PieceColor jumperColor = this.whoseMove();
+            List<MoveAttempt> allMoves = new List<MoveAttempt>();
+            for (int y = 0; y < board.getHeight(); y++)
+            {
+                for (int x = 0; x < board.getHeight(); x++)
+                {
+                    Piece p = board.getCellContents(y, x);
+                    if (p == null || (p.getColor() != jumperColor)) continue;
+                    List<Vector> doable = getDoableMoves(p);
+                    if (doable != null && doable.Count != 0)
+                    {
+                        foreach (Vector v in doable)
+                            allMoves.Add(new MoveAttempt(y, x, y + v.getY(), x + v.getX()));
+                    }
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("all moves returning" + ((allMoves.Count > 0) ? "true" : "false"));
+            return allMoves;
+        }
+        public List<MoveAttempt> getAllDoableJumpAttempts()
+        {
+            PieceColor jumperColor = this.whoseMove();
+            List<MoveAttempt> allMoves = new List<MoveAttempt>();
+            for (int y = 0; y < board.getHeight(); y++)
+            {
+                for (int x = 0; x < board.getHeight(); x++)
+                {
+                    Piece p = board.getCellContents(y, x);
+                    if (p == null || (p.getColor() != jumperColor)) continue;
+                    List<Vector> doable = getDoableJumps(p);
+                    if (doable == null || doable.Count == 0) continue;
+                    foreach (Vector v in doable)
+                        allMoves.Add(new MoveAttempt(y, x, y + v.getY(), x + v.getX()));
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("all jumps returning" + ((allMoves.Count > 0) ? "true" : "false"));
+            return allMoves;
+        }
+        public List<MoveAttempt> getAllDoableMoveJumpAttempts()
+        {
+            PieceColor jumperColor = this.whoseMove();
+            List<MoveAttempt> allMoves = new List<MoveAttempt>();
+            List<MoveAttempt> jumps = getAllDoableJumpAttempts();
+            List<MoveAttempt> moves = getAllDoableMoveAttempts();
 
+            foreach (MoveAttempt move in jumps)
+                allMoves.Add(move);
+            foreach (MoveAttempt move in moves)
+                allMoves.Add(move);
+
+            System.Diagnostics.Debug.WriteLine("all doable moves jumps returning " + (allMoves.Count > 0 ? "true" : "false"));
+            return allMoves;
+        }
+        public MoveAttempt getRandomDoableMoveAttempt()
+        {
+            List<MoveAttempt> moves = getAllDoableMoveAttempts();
+            Random random = new Random();
+            int rand = random.Next(0, moves.Count);
+            return (moves.Count==0 ? null : moves[rand]);
+        }
+        public MoveAttempt getRandomDoableJumpAttempt()
+        {
+            List<MoveAttempt> jumps = getAllDoableJumpAttempts();
+            Random random = new Random();
+            int rand = random.Next(0, jumps.Count);
+            return (jumps.Count==0? null : jumps[rand]);
+        }
         public MoveAttempt getAnyDoableJumpAttempt() {
             PieceColor jumperColor = this.whoseMove();
             for (int y = 0; y < board.getHeight(); y++) {
