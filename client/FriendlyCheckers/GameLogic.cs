@@ -308,7 +308,7 @@ namespace FriendlyCheckers {
                 throw new UnreachableCodeException(); 
             }
         }
-
+        public PieceColor getWhoMovedLast() { return movesMade[movesMade.Count - 1].getPlayer(); }
         public static Vector[] getPossibleJumps(PieceColor color, PieceType type) {
             if (type == PieceType.KING) {
                 return kingJumps;
