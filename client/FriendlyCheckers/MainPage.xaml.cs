@@ -58,11 +58,12 @@ namespace FriendlyCheckers
             {
                 Login.Content = "Create Account";
             }
-            else
+           /*
+            * else
             {
                 CredPanel.Children.Remove(CheckAvailability);
                 CredPanel.Children.Remove(AvailableRect);
-            }
+            }*/
             UserName.Text = dataDude.getUserName();
             Password.Password = dataDude.getPassword();
 
@@ -426,6 +427,7 @@ namespace FriendlyCheckers
             catch (PieceWrongColorException) { }
             catch (PlayerMustJumpException) { MessageBox.Show("You must take an available jump!"); }
             catch (InvalidMoveException) { }
+            catch (GameLogicException) { }
             checkerX = checkerY = -1;
         }
         private Boolean checkEndGame()
@@ -608,10 +610,7 @@ namespace FriendlyCheckers
         }
         private void Process_Username(object sender, EventArgs e)
         {
-            //logic to process username from server
-            //AvailableRect.Content = "Checking";
             Boolean valid = !netLogic.checkUser(UserName.Text);
-            MessageBox.Show("Valid = " + valid);
             AvailableRect.Foreground = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.BorderBrush = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.Content = valid ? "Available" : "Unavailable";
@@ -619,7 +618,6 @@ namespace FriendlyCheckers
         private void Login_Confirm(object sender, EventArgs e)
         {
             Boolean success = netLogic.login(UserName.Text, Password.Password);
-            MessageBox.Show("Success = " + success);
             LoginConfirm.Foreground = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.BorderBrush = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.Content = success ? "Success" : "Failed";
