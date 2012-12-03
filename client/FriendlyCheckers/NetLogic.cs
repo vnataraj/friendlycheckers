@@ -73,11 +73,11 @@ namespace FriendlyCheckers{
         private static string pollMatchFailure = "666.4";
         private static string writeToServerFailure = "666.5";
         private static string pollRequestFailure = "666.6";
+        private static string acceptMatchFailure = "666.7";
         private static string getSaveDataFailure = "666.9";
         private static string checkUserFailure = "666.10";
         private static string getGameDataFailure = "666.12";
         private static string unknownError = "666.666";
-        private static ManualResetEvent allDone = new ManualResetEvent(false);
 
         private bool getLoginState;
         private bool getQueueState;
@@ -85,10 +85,11 @@ namespace FriendlyCheckers{
         private bool getPollMatchState;
         private bool writeState;
         private bool getPollRequestState;
-        public bool checkUserExistsState;
+        private bool checkUserExistsState;
         private bool getSaveDataState;
         private bool getGameDataState;
         private bool communication;
+        private bool getAcceptMatchState;
         
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.getQueueState = false;
@@ -101,6 +102,8 @@ namespace FriendlyCheckers{
             this.communication=false;
             this.getGameDataState = false;
             this.getSaveDataState = false;
+            this.communication = false;
+            this.getAcceptMatchState = false;
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
@@ -118,6 +121,12 @@ namespace FriendlyCheckers{
             reader.Close();
             response.Close();
             this.checker(responseFromServer);
+            return;
+        }
+        private void sendHttpRequest(string serverpath)
+        {
+            request = (HttpWebRequest)WebRequest.Create(serverpath);
+            request.BeginGetResponse(new AsyncCallback(requestHandler), request);
             return;
         }
         private void checker(string responseFromServer)
@@ -143,7 +152,12 @@ namespace FriendlyCheckers{
             {
                 this.writeState = true;
                 return;
-            } 
+            }
+            else if (responseFromServer.Contains(acceptMatchSuccess)
+            {
+                this.getAcceptMatchState=true;
+                return;
+            }
             else if (responseFromServer.Contains(pollRequestSuccess))
             {
                 this.getRequestState = true;
@@ -200,33 +214,19 @@ namespace FriendlyCheckers{
         {
             
         }
-        private void parseUrl(string[] a)
+        private string parseUrl(string[] a)
         {
+            string b=a.ToString();
+            HttpUtility.UrlEncode(b);
+            return b;
         }
-        private void waitForCommunication()
-        {
-            int c = 0;
-            while(!communication)
-            {
-                if (c==1000000)
-                {
-                    System.Diagnostics.Debug.WriteLine("c is : " + c.ToString());
-                    break;
-                }
-                c++;
-            }
-            return;
-        }
-        public bool checkUser(string username) //should be void
+        public void checkUser(string username) //should be void
         {
             this.checkUserExistsState = false;
             serverpath = server + "?message=CheckUser&" + "Username=" + username;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(serverpath);
-                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                //waitForCommunication();
-                System.Diagnostics.Debug.WriteLine("got here");
+                sendHttpRequest(serverpath);
             }
             catch (WebException e)
             {
@@ -234,7 +234,7 @@ namespace FriendlyCheckers{
                 CheckUserException cue = new CheckUserException();
                 throw cue;
             }
-            return true;
+            return;
 /*            if (this.checkUserExistsState)
             {
                 System.Diagnostics.Debug.WriteLine("USER EXISTS is true");
@@ -244,21 +244,20 @@ namespace FriendlyCheckers{
             return false;
  */
         }
-        public SaveData[] getSaveData(string username)
+        public void getSaveData(string username)
         {
-            return this.saveData;
+            return;
         }
-        public GameData getGameData(int matchID)
+        public void getGameData(int matchID)
         {
-            return this.gameData;
+            return;
         }
-        public bool writeToServer(string username, int gameID, SaveData savedata, GameData gamedata)
+        public void writeToServer(string username, int gameID, SaveData savedata, GameData gamedata)
         {
             serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&MatchID="+savedata.getMatchID().ToString()+"&SaveData="+savedata.ToString()+"&GameData="+gamedata.ToString(); // parse move!!!
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(serverpath);
-                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+                sendHttpRequest(serverpath);
             }
             catch (WebException we)
             {
@@ -271,24 +270,16 @@ namespace FriendlyCheckers{
             {
                 Console.WriteLine("Caught exception : " + e.ToString()); // debug
             }
-            if (this.getRequestState)
-            {
-                this.getRequestState = false;
-                return true;
-            }
-            return false;
+            return;
         }
 
-        public bool login(string username, string password)// should be void
+        public void login(string username, string password)// should be void
         {
 
             serverpath=server + "?message=Login&" + "Username=" + username + "&Password=" + password;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(serverpath);
-                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                System.Diagnostics.Debug.WriteLine("Got Here");
-                //waitForCommunication();
+                sendHttpRequest(serverpath);
                }
             catch (WebException e)
             {
@@ -296,26 +287,14 @@ namespace FriendlyCheckers{
                 LoginException le = new LoginException();
                 throw le;
             }
-            return true;
-     /*       if (this.getLoginState && this.communication)
-            {
-                System.Diagnostics.Debug.WriteLine("LoginState is true");
-                this.getLoginState = false;
-                this.communication = false;
-                return true;
-            }
-            return false;
-      */
         }
-        public bool queueMatch(string username, int gameID)
+        public void queueMatch(string username, int gameID)
         {
+            this.getQueueState = false;
             string serverpath = server + "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(serverpath);
-                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-                dataStream.Close();
-                response.Close();
+                sendHttpRequest(serverpath);
             } 
             catch (WebException e)
             {
@@ -323,22 +302,16 @@ namespace FriendlyCheckers{
                 QueueMatchException qe = new QueueMatchException();
                 throw qe;
             }
-            if (this.getQueueState)
-            {
-                this.getQueueState = false;
-                return true;
-            }
-            return false;
-            
+            return;
         }
 
-        public bool requestMatch(string username, int gameID, string opponentName)
+        public void requestMatch(string username, int gameID, string opponentName)
         {
+            this.getRequestState = false;
             serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&Opponentname="+opponentName;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(serverpath);
-                request.BeginGetResponse(new AsyncCallback(requestHandler), request);
+                sendHttpRequest(serverpath);
             }
             catch (WebException we)
             {
@@ -351,12 +324,7 @@ namespace FriendlyCheckers{
             {
                 Console.WriteLine("Caught exception : " + e.ToString()); // debug
             }
-            if (this.getRequestState)
-            {
-                this.getRequestState = false;
-                return true;
-            }
-            return false;
+            return;
         } 
         public void pollRequest(string username) // called by Caleb's GameLogic to poll server, threads not necessary!
         {
@@ -386,6 +354,33 @@ namespace FriendlyCheckers{
             }
              */
         }
-
+        public bool getCheckUserState()
+        {
+            return checkUserExistsState;
+        }
+        public bool getGetLoginState()
+        {
+            return getLoginState;
+        }
+        public bool getGetRequestState()
+        {
+            return getRequestState;
+        }
+        public bool getQueueMatchState()
+        {
+            return getQueueState;
+        }
+        public bool getGetSaveDataState()
+        {
+            return getSaveDataState;
+        }
+        public bool getGetGameDataState()
+        {
+            return getGameDataState;
+        }
+        public bool getGetAcceptMatchState()
+        {
+            return getAcceptMatchState;
+        }
     }
 }
