@@ -481,7 +481,7 @@ namespace FriendlyCheckers
             if (last.Equals(logic.whoseMove()))
             {
                 // if black is making the jump
-                if (!last.Equals(PieceColor.RED))
+                if (!last.Equals(PieceColor.RED) || (game_state != GameState.SINGLE_PLAYER))
                 {
                     if (used_make_move || FORCE_JUMP)
                         Make_Educated_Move(o, e);
