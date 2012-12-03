@@ -54,6 +54,15 @@ namespace FriendlyCheckers
             checkerX = checkerY = -1;
 
             dataDude = new DataHandler();
+            if (!dataDude.hasCreds())
+            {
+                Login.Content = "Create Account";
+            }
+            else
+            {
+                CredPanel.Children.Remove(CheckAvailability);
+                CredPanel.Children.Remove(AvailableRect);
+            }
             UserName.Text = dataDude.getUserName();
             Password.Password = dataDude.getPassword();
 
@@ -269,8 +278,6 @@ namespace FriendlyCheckers
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             if (InGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
-            if (game_state == GameState.CREDS)
-                dataDude.setCreds(UserName.Text, Password.Password);
             RemoveInGameStats();
             if (MenuState())
             {
@@ -603,7 +610,8 @@ namespace FriendlyCheckers
         {
             //logic to process username from server
             //AvailableRect.Content = "Checking";
-            Boolean valid = netLogic.checkUser(UserName.Text);
+            Boolean valid = !netLogic.checkUser(UserName.Text);
+            MessageBox.Show("Valid = " + valid);
             AvailableRect.Foreground = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.BorderBrush = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.Content = valid ? "Available" : "Unavailable";
@@ -611,6 +619,7 @@ namespace FriendlyCheckers
         private void Login_Confirm(object sender, EventArgs e)
         {
             Boolean success = netLogic.login(UserName.Text, Password.Password);
+            MessageBox.Show("Success = " + success);
             LoginConfirm.Foreground = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.BorderBrush = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.Content = success ? "Success" : "Failed";
