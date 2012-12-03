@@ -262,7 +262,7 @@ namespace FriendlyCheckers
             else
             {
                 LayoutRoot.Children.Add(SaveGamePanel);
-                saveButtons = new List<SaveDataBox>();
+                /*saveButtons = new List<SaveDataBox>();
                 SaveData[] saveData = netLogic.getSaveData(dataDude.getUserName());
                 if (saveData == null) return;
                 foreach(UIElement child in SaveGamePanel.Children)
@@ -273,7 +273,7 @@ namespace FriendlyCheckers
                     saveButtons.Add(sdbox);
                     sdbox.getButton().Click += SaveDataBoxClick;
                     SaveGamePanel.Children.Add(sdbox.getButton());
-                }
+                }*/
             }
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
@@ -404,7 +404,7 @@ namespace FriendlyCheckers
         }
         public void LoadSaveGame(SaveData data)
         {
-            GameData gameData = netLogic.getGameData(data.getMatchID());
+            //GameData gameData = netLogic.getGameData(data.getMatchID());
         }
         public static void MakeMove(int boardX, int boardY)
         {
@@ -610,14 +610,16 @@ namespace FriendlyCheckers
         }
         private void Process_Username(object sender, EventArgs e)
         {
-            Boolean valid = !netLogic.checkUser(UserName.Text);
+            netLogic.checkUser(UserName.Text);
+            Boolean valid = netLogic.getCheckUserState();
             AvailableRect.Foreground = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.BorderBrush = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.Content = valid ? "Available" : "Unavailable";
         }
         private void Login_Confirm(object sender, EventArgs e)
         {
-            Boolean success = netLogic.login(UserName.Text, Password.Password);
+            netLogic.login(UserName.Text, Password.Password);
+            Boolean success = netLogic.getGetLoginState();
             LoginConfirm.Foreground = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.BorderBrush = new SolidColorBrush(success ? Valid : Invalid);
             LoginConfirm.Content = success ? "Success" : "Failed";

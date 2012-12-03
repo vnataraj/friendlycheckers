@@ -153,7 +153,7 @@ namespace FriendlyCheckers{
                 this.writeState = true;
                 return;
             }
-            else if (responseFromServer.Contains(acceptMatchSuccess)
+            else if (responseFromServer.Contains(acceptMatchSuccess))
             {
                 this.getAcceptMatchState=true;
                 return;
@@ -182,6 +182,7 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(loginFailure))
             {
+                this.getLoginState = false;
                 return;
             }
             else if (responseFromServer.Contains(queueMatchFailure))
@@ -206,6 +207,7 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(checkUserFailure))
             {
+                this.checkUserExistsState = false;
                 return;
             }
             return;
@@ -222,7 +224,7 @@ namespace FriendlyCheckers{
         }
         public void checkUser(string username) //should be void
         {
-            this.checkUserExistsState = false;
+            
             serverpath = server + "?message=CheckUser&" + "Username=" + username;
             try
             {
@@ -275,12 +277,11 @@ namespace FriendlyCheckers{
 
         public void login(string username, string password)// should be void
         {
-
             serverpath=server + "?message=Login&" + "Username=" + username + "&Password=" + password;
             try
             {
                 sendHttpRequest(serverpath);
-               }
+            }
             catch (WebException e)
             {
                 Console.WriteLine("Caught exception : "+e.ToString());  //...
