@@ -519,6 +519,7 @@ namespace FriendlyCheckers {
                 throw new PlayerMustJumpException();
             } else {
                 turnNumber++;
+                multiJumpLoc = null;
             }
         }
 
