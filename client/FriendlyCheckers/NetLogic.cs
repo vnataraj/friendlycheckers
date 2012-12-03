@@ -180,6 +180,11 @@ namespace FriendlyCheckers{
                 this.getLoginState = true;
                 return;
             }
+            else if (responseFromServer.Contains(checkUserFailure))
+            {
+                this.checkUserExistsState = false;
+                return;
+            }
             else if (responseFromServer.Contains(loginFailure))
             {
                 this.getLoginState = false;
@@ -203,11 +208,6 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(pollRequestFailure))
             {
-                return;
-            }
-            else if (responseFromServer.Contains(checkUserFailure))
-            {
-                this.checkUserExistsState = false;
                 return;
             }
             return;
@@ -288,6 +288,7 @@ namespace FriendlyCheckers{
                 LoginException le = new LoginException();
                 throw le;
             }
+            return;
         }
         public void queueMatch(string username, int gameID)
         {
