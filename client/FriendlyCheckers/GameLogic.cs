@@ -623,6 +623,11 @@ namespace FriendlyCheckers {
         }
 
         public MoveAttempt getAnyDoableMoveJump() {
+            if (multiJumpLoc != null) {
+                Vector doable = getDoableJumps(board.getCellContents(multiJumpLoc))[0];
+                return new MoveAttempt(multiJumpLoc.getY(), multiJumpLoc.getX(),
+                    multiJumpLoc.getY() + doable.getY(), multiJumpLoc.getX() + doable.getX()); 
+            }
             MoveAttempt jump = getAnyDoableJumpAttempt();
             if (jump != null) {
                 return jump;
