@@ -281,7 +281,7 @@ namespace FriendlyCheckers{
             for (int i = 1; i < lines.Length; i++)
             {
                 finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
-                if (finished[4].Contains("BLACK"))
+                if (finished[3].Contains("BLACK"))
                 {
                     p = PieceColor.BLACK;
                 }
@@ -289,7 +289,7 @@ namespace FriendlyCheckers{
                 {
                     p = PieceColor.RED;
                 }
-                if (finished[5].Contains("BLACK"))
+                if (finished[4].Contains("BLACK"))
                 {
                     whoseMove = PieceColor.BLACK;
                 }
@@ -297,7 +297,7 @@ namespace FriendlyCheckers{
                 {
                     whoseMove = PieceColor.RED;
                 }
-                saveData[j] = new SaveData(Convert.ToInt32(finished[1]), finished[2], Convert.ToInt32(finished[3]), p, whoseMove);
+                saveData[j] = new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove);
                 j++;
             }
             
