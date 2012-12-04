@@ -281,7 +281,7 @@ namespace FriendlyCheckers{
             for (int i = 1; i < lines.Length; i++)
             {
                 finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
-                if (finished[3].Contains("BLACK"))
+                if (finished[3].Equals("BLACK"))
                 {
                     p = PieceColor.BLACK;
                 }
@@ -289,7 +289,7 @@ namespace FriendlyCheckers{
                 {
                     p = PieceColor.RED;
                 }
-                if (finished[4].Contains("BLACK"))
+                if (finished[4].Equals("BLACK"))
                 {
                     whoseMove = PieceColor.BLACK;
                 }
