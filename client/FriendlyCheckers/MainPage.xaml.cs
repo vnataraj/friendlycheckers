@@ -237,6 +237,11 @@ namespace FriendlyCheckers
         }
         private void SaveGame_Setup(object sender, RoutedEventArgs e)
         {
+            if (!netLogic.getInternetState())
+            {
+                MessageBox.Show("You need to turn on data or connect to wifi to use that feature.");
+                return;
+            }
             game_state = GameState.SAVE_GAME;
             PageTitle.Text = "Active Games";
             ClearMenu();
@@ -329,6 +334,11 @@ namespace FriendlyCheckers
         }
         private void Show_Creds(object sender, RoutedEventArgs e)
         {
+            if (!netLogic.getInternetState())
+            {
+                MessageBox.Show("You need to turn on data or connect to wifi to use that feature.");
+                return;
+            }
             game_state = GameState.CREDS;
             quit.Content = "Save and Quit to Menu";
             PageTitle.Text = "Credentials";
