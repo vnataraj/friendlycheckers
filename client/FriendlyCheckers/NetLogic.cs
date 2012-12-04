@@ -319,6 +319,7 @@ namespace FriendlyCheckers{
         {
             if (createUserState && user!=null && user.Equals(username))
             {
+                createUserState = false;
                 return;
             }
             user = username;
