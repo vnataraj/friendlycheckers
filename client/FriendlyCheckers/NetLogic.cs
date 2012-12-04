@@ -47,7 +47,7 @@ namespace FriendlyCheckers{
         private HttpWebResponse response;
         private Stream dataStream;
         private StreamReader reader;
-        private SaveData[] saveData;
+        private List<SaveData> saveData;
         private GameData gameData;
 
         private int moveNumber;
@@ -120,6 +120,7 @@ namespace FriendlyCheckers{
             this.getAcceptMatchState = false;
             this.createUserState = false;
             this.exists = false;
+            saveData = new List<SaveData>();
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
@@ -273,34 +274,18 @@ namespace FriendlyCheckers{
         }
         private void parseSaveData(string a)
         {
-            string[] finished;
             string[] lines = a.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            int j=0;
-            PieceColor p;
-            PieceColor whoseMove;
+            PieceColor p, whoseMove;
             for (int i = 1; i < lines.Length; i++)
             {
-                finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
-                if (finished[3].Equals("BLACK"))
-                {
-                    p = PieceColor.BLACK;
-                }
-                else
-                {
-                    p = PieceColor.RED;
-                }
-                if (finished[4].Equals("BLACK"))
-                {
-                    whoseMove = PieceColor.BLACK;
-                }
-                else
-                {
-                    whoseMove = PieceColor.RED;
-                }
-                saveData[j] = new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove);
-                j++;
+                string[] finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
+                if (finished[0].Equals("")) return;
+
+                p = finished[3].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
+                whoseMove = finished[4].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
+
+                saveData.Add(new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove));
             }
-            
             return;
         }
         public void checkUser(string username) //should be void
@@ -508,7 +493,7 @@ namespace FriendlyCheckers{
         {
             return internetState;
         }
-        public SaveData[] getGetSaveData()
+        public List<SaveData> getGetSaveData()
         {
             if (getSaveDataState)
             {

@@ -57,6 +57,7 @@ namespace FriendlyCheckers
             netLogic = new NetworkLogic();
             dataDude = new DataHandler();
             ResetCredsPanel();
+            netLogic.getSaveData(dataDude.getUserName());
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -255,18 +256,23 @@ namespace FriendlyCheckers
             else
             {
                 LayoutRoot.Children.Add(SaveGamePanel);
-                /*saveButtons = new List<SaveDataBox>();
-                SaveData[] saveData = netLogic.getSaveData(dataDude.getUserName());
+                saveButtons = new List<SaveDataBox>();
+                List<SaveData> saveData = netLogic.getGetSaveData(); 
                 if (saveData == null) return;
-                foreach(UIElement child in SaveGamePanel.Children)
-                    SaveGamePanel.Children.Remove(child);
+                foreach (UIElement child in SaveGamePanel.Children)
+                {
+                    if(!child.Equals(NewGame))
+                        SaveGamePanel.Children.Remove(child);
+                }
+                int ind = 0;
                 foreach (SaveData sd in saveData)
                 {
-                    SaveDataBox sdbox = new SaveDataBox(sd);
+                    SaveDataBox sdbox = new SaveDataBox(ind,sd);
                     saveButtons.Add(sdbox);
                     sdbox.getButton().Click += SaveDataBoxClick;
                     SaveGamePanel.Children.Add(sdbox.getButton());
-                }*/
+                    ind++;
+                }
             }
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
@@ -741,13 +747,16 @@ namespace FriendlyCheckers
     {
         private SaveData data;
         private Button button;
-        public SaveDataBox(SaveData data) 
+        public SaveDataBox(int index, SaveData data) 
         { 
             this.data = data;
             button = new Button();
-            button.Content = "Moves: "+data.getNumMoves()+"          "+data.getOpponent();
+            button.Content = "Moves: "+data.getNumMoves()+"          "+data.getOpponent()+"          ";
             button.HorizontalContentAlignment = HorizontalAlignment.Right;
             button.FontSize = 30;
+            button.Height = 80;
+            button.Width = 450;
+            button.Margin = new Thickness(0, -500 + 120 * index, 0, 0);
         }
         public Button getButton() { return button; }
         public SaveData getSaveData() { return data; }
