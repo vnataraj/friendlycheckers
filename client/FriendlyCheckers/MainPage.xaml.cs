@@ -47,27 +47,16 @@ namespace FriendlyCheckers
         public MainPage()
         {
             InitializeComponent();
+            InitializeColors();
             LayoutRoot.Children.Remove(OptionsPanel);
             LayoutRoot.Children.Remove(AboutPanel);
             LayoutRoot.Children.Remove(CredPanel);
             LayoutRoot.Children.Remove(SaveGamePanel);
             checkerX = checkerY = -1;
 
-            dataDude = new DataHandler();
-            if (!dataDude.hasCreds())
-            {
-                Login.Content = "Create Account";
-            }
-           /*
-            * else
-            {
-                CredPanel.Children.Remove(CheckAvailability);
-                CredPanel.Children.Remove(AvailableRect);
-            }*/
-            UserName.Text = dataDude.getUserName();
-            Password.Password = dataDude.getPassword();
-
             netLogic = new NetworkLogic();
+            dataDude = new DataHandler();
+            ResetCredsPanel();
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -83,7 +72,6 @@ namespace FriendlyCheckers
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800);  // Timer will tick in 800 milliseconds. This is the wait between moves.
             Op_DiffEasy.IsChecked = true;
 
-            InitializeColors();
             RemoveInGameStats();
             mainCanvas = new Canvas();
             mainCanvas.Width = w;
@@ -280,6 +268,7 @@ namespace FriendlyCheckers
         {
             if (InGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
             RemoveInGameStats();
+            clearCredStats();
             if (MenuState())
             {
                 ContentPanel.Children.Add(mainCanvas);
@@ -292,18 +281,41 @@ namespace FriendlyCheckers
             else
                 LayoutRoot.Children.Add(TitlePanel);
             PageTitle.Text = "Checkers";
+
+            ///// restore Login stuff
+            ResetCredsPanel();
+            /////
+
+            ///// restore main menu
             ContentPanel.Children.Add(singleplayer);
             ContentPanel.Children.Add(multiplayer_local);
             ContentPanel.Children.Add(multiplayer_online);
             ContentPanel.Children.Add(options);
             ContentPanel.Children.Add(about);
+            /////
+
             game_state = GameState.OUT_OF_GAME;
+
+            ///// reset game vars
             wait_for_computer = false;
             wait_for_timer = false;
             rotated = false;
             checkerX = checkerY = -1;
             resetBoard();
             rotateBoard90();
+            /////
+        }
+        private void LoginSuccess(bool success)
+        {
+            LoginConfirm.Foreground = new SolidColorBrush(success ? Valid : Invalid);
+            LoginConfirm.BorderBrush = new SolidColorBrush(success ? Valid : Invalid);
+            LoginConfirm.Content = success ? "Success" : "Failed";
+        }
+        private void CheckUserValidity(bool valid)
+        {
+            AvailableRect.Foreground = new SolidColorBrush(valid ? Valid : Invalid);
+            AvailableRect.BorderBrush = new SolidColorBrush(valid ? Valid : Invalid);
+            AvailableRect.Content = valid ? "Available" : "Unavailable";
         }
         private void Show_Options(object sender, RoutedEventArgs e)
         {
@@ -322,6 +334,8 @@ namespace FriendlyCheckers
             PageTitle.Text = "Credentials";
             LayoutRoot.Children.Remove(OptionsPanel);
             LayoutRoot.Children.Add(CredPanel);
+            if (!CredPanel.Children.Contains(NewUser))
+                CredPanel.Children.Add(NewUser);
             FocusLost(sender, e);
         }
         private void NewGame_Setup(object sender, RoutedEventArgs e)
@@ -387,7 +401,43 @@ namespace FriendlyCheckers
         {
             return game_state;
         }
-        
+        private void ResetCredsPanel()
+        {
+            CredPanel.Children.Remove(ChangeUser);
+            CredPanel.Children.Remove(NewUser);
+            CredPanel.Children.Remove(CheckAvailability);
+            CredPanel.Children.Remove(AvailableRect);
+            clearCredStats();
+            Login.Content = "Login";
+            UserName.Text = "";
+            Password.Password = "";
+
+            if (dataDude.hasCreds())
+            {
+                UserName.Text = dataDude.getUserName();
+                Password.Password = dataDude.getPassword();
+
+                UserName.IsEnabled = false;
+                Password.IsEnabled = false;
+                Login.IsEnabled = false;
+                ChangeUser.IsEnabled = true;
+
+                LoginSuccess(true);
+                CredPanel.Children.Add(ChangeUser);
+                CredPanel.Children.Add(NewUser);
+            }
+            else
+            {
+                CheckAvailability.IsEnabled = true;
+                UserName.IsEnabled = true;
+                Password.IsEnabled = true;
+                Login.IsEnabled = true;
+                Login.Content = "Create Account";
+                ChangeUser.IsEnabled = false;
+                CredPanel.Children.Add(CheckAvailability);
+                CredPanel.Children.Add(AvailableRect);
+            }
+        }
         
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
@@ -609,30 +659,72 @@ namespace FriendlyCheckers
         {
             netLogic.checkUser(UserName.Text);
             Boolean valid = !netLogic.getCheckUserState();
-            AvailableRect.Foreground = new SolidColorBrush(valid ? Valid : Invalid);
-            AvailableRect.BorderBrush = new SolidColorBrush(valid ? Valid : Invalid);
-            AvailableRect.Content = valid ? "Available" : "Unavailable";
+            if (UserName.Text.Equals(""))
+                valid = false;
+            CheckUserValidity(valid);
         }
         private void Login_Confirm(object sender, EventArgs e)
         {
-            netLogic.login(UserName.Text, Password.Password);
-            Boolean success = netLogic.getGetLoginState();
-            LoginConfirm.Foreground = new SolidColorBrush(success ? Valid : Invalid);
-            LoginConfirm.BorderBrush = new SolidColorBrush(success ? Valid : Invalid);
-            LoginConfirm.Content = success ? "Success" : "Failed";
+            bool create = Login.Content.Equals("Create Account");
+            if (create)
+                netLogic.createUser(UserName.Text, Password.Password);
+            else
+                netLogic.login(UserName.Text, Password.Password);
+
+            Boolean success = create ? !netLogic.getCreateUserState(): netLogic.getGetLoginState();
+            if (UserName.Text.Equals("") || Password.Password.Equals("")) 
+                success = false;
+            LoginSuccess(success);
 
             if (success)
+            {
                 dataDude.setCreds(UserName.Text, Password.Password);
+                ResetCredsPanel();
+            }
         }
         private void FocusLost(object sender, EventArgs e)
         {
             netLogic.checkUser(UserName.Text);
             netLogic.login(UserName.Text, Password.Password);
+            if(Login.Content.Equals("Create Account"))
+                netLogic.createUser(UserName.Text, Password.Password);
             CheckAvailability.IsEnabled = true;
+            AvailableRect.IsEnabled = true;
         }
         private void FocusGained(object sender, EventArgs e)
         {
             CheckAvailability.IsEnabled = false;
+            AvailableRect.IsEnabled = true;
+            clearCredStats();
+        }
+        private void Create_User(object o, EventArgs e)
+        {
+            UserName.Text = Password.Password = "";
+            netLogic.createUser(UserName.Text, Password.Password);
+            Login.Content = "Create Account";
+            UserName.IsEnabled = true;
+            Password.IsEnabled = true;
+            Login.IsEnabled = true;
+            CredPanel.Children.Add(CheckAvailability);
+            CredPanel.Children.Add(AvailableRect);
+            CredPanel.Children.Remove(NewUser);
+            CredPanel.Children.Remove(ChangeUser);
+            clearCredStats();
+        }
+        private void Change_User(object o, EventArgs e)
+        {
+            netLogic.login(UserName.Text, Password.Password);
+            clearCredStats();
+            UserName.IsEnabled = true;
+            Password.IsEnabled = true;
+            Login.IsEnabled = true;
+            ChangeUser.IsEnabled = false;
+        }
+        private void clearCredStats()
+        {
+            LoginConfirm.Foreground = LoginConfirm.BorderBrush = new SolidColorBrush(Colors.White);
+            LoginConfirm.Content = AvailableRect.Content = "";
+            AvailableRect.Foreground = AvailableRect.BorderBrush = new SolidColorBrush(Colors.White);
         }
     }
     public class SaveDataBox

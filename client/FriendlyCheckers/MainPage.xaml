@@ -48,7 +48,7 @@
             <TextBlock x:Name="Search" Text="Searching for Opponents..." FontSize="32" Style="{StaticResource PhoneTextNormalStyle}" Height="56" Margin="0,206,29,397" HorizontalAlignment="Right" Width="376" />
         </Grid>
         <Grid Name ="SaveGamePanel" Margin="0,139,0,74" Grid.RowSpan="2">
-            <Button Name="NewGame" Click="NewGame_Setup" Height="80" FontSize="30" Margin="-6,458,6,16">Find Random Opponent</Button>
+            <Button Name="NewGame" Click="NewGame_Setup" Height="80" FontSize="30" Margin="0,458,0,16">Find Random Opponent</Button>
         </Grid>
         <StackPanel Name ="OptionsPanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <TextBlock x:Name="GameOptions" Text="Gameplay:" FontSize="28" Margin ="-10,20,10,0" Style="{StaticResource PhoneTextNormalStyle}" Height="40" HorizontalAlignment="Right" Width="454" />
@@ -79,6 +79,8 @@
             <PasswordBox Name="Password" Width ="450" LostFocus="FocusLost" Margin="6,239,24,247" Height="69"></PasswordBox>
             <Button FontSize="26" Click="Login_Confirm" Height="75" Margin="6,314,194,166" Name="Login">Login</Button>
             <Button Height="75" Margin="275,314,21,166" Name="LoginConfirm" />
+            <Button Name="ChangeUser"  Click="Change_User" Margin="0,486,0,6" Height="70">Change User</Button>
+            <Button Name="NewUser"  Click="Create_User" Margin="0,386,0,6" Height="70">Create User</Button>
         </Grid>
     </Grid>
 </phone:PhoneApplicationPage>
