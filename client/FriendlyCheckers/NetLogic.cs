@@ -25,6 +25,7 @@ namespace FriendlyCheckers{
     public class CheckUserException : System.Exception { }
     public class CreateUserException : System.Exception { }
     public class GetSaveDataException : System.Exception { }
+    public class GetGameDataException : System.Exception { }
     public class NetworkLogic
     {
 
@@ -196,7 +197,6 @@ namespace FriendlyCheckers{
             else if(responseFromServer.Contains(getGameDataSuccess))
             {
                 this.getGameDataState = true;
-
                 return;
             }
             else if(responseFromServer.Contains(getSaveDataSuccess))
@@ -214,6 +214,11 @@ namespace FriendlyCheckers{
             else if (responseFromServer.Contains(checkUserFailure))
             {
                 this.checkUserExistsState = false;
+                return;
+            }
+            else if(responseFromServer.Contains(getGameDataFailure))
+            {
+                this.getGameDataState=false;
                 return;
             }
             else if (responseFromServer.Contains(createUserFailure))
@@ -327,13 +332,23 @@ namespace FriendlyCheckers{
             }
             return;
         }
-        public void getGameData(int matchID)
+        public void getGameData(string username, int matchID)
         {
-            return;
+            serverpath = server + "?message=GetGameData&" + "Username=" + username + "&MatchID=" + matchID.ToString();
+            try
+            {
+                sendHttpRequest(serverpath);
+            }
+            catch (WebException we)
+            {
+                System.Diagnostics.Debug.WriteLine("Caught exception : " + we.ToString());
+                GetGameDataException ggde = new GetGameDataException();
+                throw ggde;
+            }
         }
         public void writeToServer(string username, SaveData saveData, GameData gameData)
         {
-            string str = saveData.ToString() +" "+ gameData.ToString();
+            string str = gameData.ToString();
             serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" + saveData.getNumMoves().ToString()+"&Notation="+encodeHttp(str); // parse move!!!
             try
             {
