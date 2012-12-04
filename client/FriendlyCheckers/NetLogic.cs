@@ -12,6 +12,7 @@ using System.Windows.Shapes;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Threading;
+using Microsoft.Phone.Net.NetworkInformation;
 
 namespace FriendlyCheckers{
     public class UnknownException : System.Exception { }
@@ -23,6 +24,7 @@ namespace FriendlyCheckers{
     public class WriteToServerException : System.Exception { }
     public class CheckUserException : System.Exception { }
     public class CreateUserException : System.Exception { }
+    public class GetSaveDataException : System.Exception { }
     public class NetworkLogic
     {
 
@@ -67,6 +69,7 @@ namespace FriendlyCheckers{
         private static string pollRequestSuccess = "42.6";
         private static string acceptMatchSuccess="42.7";
         private static string pollMatchNoMoveSuccess="42.8";
+        private static string getSaveDataSuccess = "42.9";
         private static string checkUserExistsSuccess = "42.10";
         private static string getGameDataSuccess = "42.12";
         private static string createUserSuccess = "42.13";
@@ -96,8 +99,14 @@ namespace FriendlyCheckers{
         private bool getAcceptMatchState;
         private bool createUserState;
         private bool exists;
+        private bool internetState;
         
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
+            this.internetState = false;
+            if (NetworkInterface.GetIsNetworkAvailable())
+            {
+                this.internetState = true;
+            }
             this.getQueueState = false;
             this.getLoginState = false;
             this.getRequestState = false;
@@ -165,6 +174,7 @@ namespace FriendlyCheckers{
             else if (responseFromServer.Contains(writeToServerSuccess))
             {
                 this.writeState = true;
+                
                 return;
             }
             else if (responseFromServer.Contains(acceptMatchSuccess))
@@ -186,7 +196,13 @@ namespace FriendlyCheckers{
             else if(responseFromServer.Contains(getGameDataSuccess))
             {
                 this.getGameDataState = true;
+
                 return;
+            }
+            else if(responseFromServer.Contains(getSaveDataSuccess))
+            {
+                this.getSaveDataState = true;
+
             }
             else if (responseFromServer.Contains(loginSuccess))
             {
@@ -234,6 +250,11 @@ namespace FriendlyCheckers{
             {
                 return;
             }
+            else if(responseFromServer.Contains(getSaveDataFailure))
+            {
+                this.getSaveDataState=false;
+                return;
+            }
             return;
         }
         private void createUrl(List<Piece> removals, List<Piece> additions)
@@ -246,11 +267,37 @@ namespace FriendlyCheckers{
             a = HttpUtility.UrlEncode(b);
             return a;
         }
-        private string parseUrl(string[] a)
+        private void parseSaveData(string a)
         {
-            string b=a.ToString();
-            HttpUtility.UrlDecode(b);
-            return b;
+            string[] finished;
+            string[] lines = a.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            int j=0;
+            PieceColor p;
+            PieceColor whoseMove;
+            for (int i = 1; i < lines.Length; i++)
+            {
+                finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
+                if (finished[4].Contains("BLACK"))
+                {
+                    p = PieceColor.BLACK;
+                }
+                else
+                {
+                    p = PieceColor.RED;
+                }
+                if (finished[5].Contains("BLACK"))
+                {
+                    whoseMove = PieceColor.BLACK;
+                }
+                else
+                {
+                    whoseMove = PieceColor.RED;
+                }
+                saveData[j] = new SaveData(Convert.ToInt32(finished[1]), finished[2], Convert.ToInt32(finished[3]), p, whoseMove);
+                j++;
+            }
+            
+            return;
         }
         public void checkUser(string username) //should be void
         {
@@ -278,6 +325,17 @@ namespace FriendlyCheckers{
         }
         public void getSaveData(string username)
         {
+            serverpath = server + "?message=GetSaveData&" + "Username=" + username;
+            try
+            {
+                sendHttpRequest(serverpath);
+            }
+            catch (WebException we)
+            {
+                System.Diagnostics.Debug.WriteLine("Caught exception : " + we.ToString());
+                GetSaveDataException gsde = new GetSaveDataException();
+                throw gsde;
+            }
             return;
         }
         public void getGameData(int matchID)
@@ -441,6 +499,19 @@ namespace FriendlyCheckers{
         public bool getCreateUserState()
         {
             return createUserState;
+        }
+        public bool getInternetState()
+        {
+            return internetState;
+        }
+        public SaveData[] getGetSaveData()
+        {
+            if (getSaveDataState)
+            {
+                this.getSaveDataState = false;
+                return saveData;
+            }
+            return saveData;
         }
     }
 }
