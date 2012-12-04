@@ -265,9 +265,22 @@ namespace FriendlyCheckers
                         SaveGamePanel.Children.Remove(child);
                 }
                 int ind = 0;
-                foreach (SaveData sd in saveData)
+                foreach (SaveData sd in saveData) // add enabled boxes
                 {
-                    SaveDataBox sdbox = new SaveDataBox(ind,sd);
+                    if (!sd.getPlayerColor().Equals(sd.getWhoseTurn())) continue;
+
+                    SaveDataBox sdbox = new SaveDataBox(ind, sd);
+                    saveButtons.Add(sdbox);
+                    sdbox.getButton().Click += SaveDataBoxClick;
+                    SaveGamePanel.Children.Add(sdbox.getButton());
+                    ind++;
+                }
+                foreach (SaveData sd in saveData)// then add disabled boxes.
+                {
+                    if (sd.getPlayerColor().Equals(sd.getWhoseTurn())) continue;
+
+                    SaveDataBox sdbox = new SaveDataBox(ind, sd);
+                    sdbox.setEnabled(false);
                     saveButtons.Add(sdbox);
                     sdbox.getButton().Click += SaveDataBoxClick;
                     SaveGamePanel.Children.Add(sdbox.getButton());
@@ -760,6 +773,7 @@ namespace FriendlyCheckers
         }
         public Button getButton() { return button; }
         public SaveData getSaveData() { return data; }
+        public void setEnabled(bool b){ button.IsEnabled = b; }
     }
     public class BoardSpace
     {
