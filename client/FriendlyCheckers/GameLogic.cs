@@ -58,16 +58,22 @@ namespace FriendlyCheckers {
         public int getXEnd() {
             return xEnd;
         }
+        public String toString() {
+            return yStart + ":" + xStart + ":" + yEnd + ":" + xEnd;
+        }
+        public static MoveAttempt fromString(String ma) {
+            String[] s = ma.Split(new string[] { ":" }, StringSplitOptions.None);
+            return new MoveAttempt(Convert.ToInt32(s[0]), Convert.ToInt32(s[1]), Convert.ToInt32(s[2]), Convert.ToInt32(s[3]));
+        }
     }
 
     public class Move { // this is the api to give data to networking (and maybe GUI)
-        int turnNumber;
         List<Piece> removals;
         List<Piece> additions;
         PieceColor player; 
         
         public Move(int turnNumber, List<Piece> removals, List<Piece> additions, PieceColor player) {
-            this.turnNumber = turnNumber;
+            //this.turnNumber = turnNumber;
             this.removals = removals;
             this.additions = additions;
             this.player = player; 
@@ -75,10 +81,6 @@ namespace FriendlyCheckers {
 
         public PieceColor getPlayer() { 
             return this.player; 
-        }
-
-        public int getTurnNumber() {
-            return turnNumber;
         }
 
         public List<Piece> getRemovals(){
@@ -92,7 +94,6 @@ namespace FriendlyCheckers {
             }
             return additionsCopy;
         }
-
 
     }
 
@@ -182,6 +183,7 @@ namespace FriendlyCheckers {
         public Vector getCoordinates(){ 
             return new Vector(coordinates); 
         }
+
     }
 
     public class Cell { 
@@ -423,75 +425,6 @@ namespace FriendlyCheckers {
             return p.getColor() == this.whoseMove(); 
         }
 
-        public Move makeMove(MoveAttempt a) {
-            return makeMove(a.getYStart(), a.getXStart(), a.getYEnd(), a.getXEnd());
-        }
-
-        public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
-            Piece start = board.getCellContents(yStart, xStart);
-            Piece end = board.getCellContents(yEnd, xEnd);
-
-            if (start == null) { //there is no piece here
-                throw new CellEmptyException();
-            }
-            if (end != null) {
-                throw new CellFullException();
-            }
-            if (start.getColor() != whoseMove()) {
-                throw new PieceWrongColorException();
-            }
-
-            PieceType originalPieceType = start.getType(); 
-
-            System.Diagnostics.Debug.WriteLine("makeMove called"); 
-            Move myMove = getMove(start, yEnd, xEnd, this.whoseMove());
-
-            doMove(myMove);
-            Piece add = myMove.getAdditions()[0];
-            if (originalPieceType != add.getType()) {
-                lastAdvantage = turnNumber;
-            }
-            if (myMove.getRemovals().Count > 1) { //that means a piece has been taken
-                lastAdvantage = turnNumber;
-            }
-
-            if (originalPieceType == add.getType() && myMove.getRemovals().Count == 2 && getDoableJumps(add).Count != 0) {
-                this.multiJumpLoc = myMove.getAdditions()[0].getCoordinates(); 
-                //don't change turnNumber
-            } else {
-                this.turnNumber++;
-                this.multiJumpLoc = null; 
-            }
-            this.moveNumber++;
-            //getOptimizedHeuristic(0, 3, new GameLogic(this));
-            return myMove;
-        }
-
-        private void doMove(Move move) {
-            movesMade.Add(move); 
-            foreach (Piece removal in move.getRemovals()) {
-                removePiece(removal); 
-            }
-            foreach (Piece addition in move.getAdditions()) {
-                addPiece(addition);
-            }
-        }
-
-        public List<Move> getMovesMade() { 
-            return this.movesMade; 
-        }
-
-        public void makeMoves(List<Move> moves) { 
-            PieceColor lastMoveColor = whoseMove(); 
-            foreach(Move move in moves) { 
-                if(move.getPlayer() != lastMoveColor) { 
-                    turnNumber++; 
-                    lastMoveColor = move.getPlayer(); 
-                }
-                moveNumber++; 
-                doMove(move); 
-            }
-        }
 
         public PieceColor whoseMove() {
             if (turnNumber % 2 == 1) {
@@ -761,6 +694,14 @@ namespace FriendlyCheckers {
         private bool canMoveSomewhere() {
             return getAnyDoableMoveAttempt() != null;
         }
+
+        private bool canJumpSomewhere() {
+            return getAnyDoableJumpAttempt() != null;
+        }
+
+        private bool moveIsJump(Vector start, int yEnd, int xEnd) {
+            return (Math.Abs(start.getX() - xEnd) == 2 && Math.Abs(start.getY() - yEnd) == 2);
+        }
         public List<MoveAttempt> getAllDoableMoveAttempts()
         {
             
@@ -866,13 +807,80 @@ namespace FriendlyCheckers {
             return null;
         }
 
-        private bool canJumpSomewhere() {
-            return getAnyDoableJumpAttempt() != null; 
+
+        public Move makeMove(MoveAttempt a) {
+            return makeMove(a.getYStart(), a.getXStart(), a.getYEnd(), a.getXEnd());
         }
 
-        private bool moveIsJump(Vector start, int yEnd, int xEnd) {
-            return (Math.Abs(start.getX() - xEnd) == 2 && Math.Abs(start.getY() - yEnd) == 2);
+        public Move makeMove(int yStart, int xStart, int yEnd, int xEnd) {
+            Piece start = board.getCellContents(yStart, xStart);
+            Piece end = board.getCellContents(yEnd, xEnd);
+
+            if (start == null) { //there is no piece here
+                throw new CellEmptyException();
+            }
+            if (end != null) {
+                throw new CellFullException();
+            }
+            if (start.getColor() != whoseMove()) {
+                throw new PieceWrongColorException();
+            }
+
+            PieceType originalPieceType = start.getType();
+
+            System.Diagnostics.Debug.WriteLine("makeMove called");
+            Move myMove = getMove(start, yEnd, xEnd, this.whoseMove());
+
+            doMove(myMove);
+            Piece add = myMove.getAdditions()[0];
+            if (originalPieceType != add.getType()) {
+                lastAdvantage = turnNumber;
+            }
+            if (myMove.getRemovals().Count > 1) { //that means a piece has been taken
+                lastAdvantage = turnNumber;
+            }
+
+            if (originalPieceType == add.getType() && myMove.getRemovals().Count == 2 && getDoableJumps(add).Count != 0) {
+                this.multiJumpLoc = myMove.getAdditions()[0].getCoordinates();
+                //don't change turnNumber
+            } else {
+                this.turnNumber++;
+                this.multiJumpLoc = null;
+            }
+            this.moveNumber++;
+            //getOptimizedHeuristic(0, 3, new GameLogic(this));
+            return myMove;
         }
+
+        private void doMove(Move move) {
+            movesMade.Add(move);
+            foreach (Piece removal in move.getRemovals()) {
+                removePiece(removal);
+            }
+            foreach (Piece addition in move.getAdditions()) {
+                addPiece(addition);
+            }
+        }
+
+        public List<Move> getMovesMade() {
+            return this.movesMade;
+        }
+
+        public void makeMoves(List<Move> moves) {
+            PieceColor lastMoveColor = whoseMove();
+            foreach (Move move in moves) {
+                if (move.getPlayer() != lastMoveColor) {
+                    turnNumber++;
+                    lastMoveColor = move.getPlayer();
+                }
+                if (move.getRemovals().Count >= 2 || move.getRemovals()[0].getType() != move.getAdditions()[0].getType()) { 
+                    lastAdvantage = turnNumber;
+                }
+                moveNumber++;
+                doMove(move);
+            }
+        }
+
 
         private Move getMove(Piece start, int yEnd, int xEnd, PieceColor player){
             List<Piece> removals = new List<Piece>();
@@ -889,9 +897,6 @@ namespace FriendlyCheckers {
 
             Vector startLoc = start.getCoordinates();
             Vector endLoc = new Vector(yEnd, xEnd);  
-  
-
-
             Vector myMove = endLoc.subtract(startLoc);
 
             //jump logic goes here
