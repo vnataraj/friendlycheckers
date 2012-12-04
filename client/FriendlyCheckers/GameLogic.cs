@@ -146,8 +146,6 @@ namespace FriendlyCheckers {
         }
     }
 
-
-
     public class Piece { // Piece cannot be changed after created; only copied or read
         PieceColor color;
         Vector coordinates;
@@ -182,7 +180,6 @@ namespace FriendlyCheckers {
             return new Vector(coordinates); 
         }
     }
-
 
     public class Cell { 
         bool filled; 
@@ -220,7 +217,6 @@ namespace FriendlyCheckers {
             return new Piece(this.piece); 
         }
     }
-
 
     public class Board {
         //List<Piece> pieces;
@@ -287,7 +283,10 @@ namespace FriendlyCheckers {
         int blackPieces = 0;
         int redPieces = 0; 
         int turnNumber = 0; 
-        List<Move> movesMade; 
+        List<Move> movesMade;
+
+        int lastAdvantage = 0; //the turnNumber of the last move that either
+                               //made a king or took a piece.
 
         Vector multiJumpLoc = null; 
 
@@ -416,11 +415,6 @@ namespace FriendlyCheckers {
             board.addPieceToCell(p); 
         }
 
-        public bool pollForUpdates(){
-            return true; 
-            //stub
-        }
-
         public bool isSelectable(int y, int x) {
             Piece p = board.getCellContents(y, x); 
             return p.getColor() == this.whoseMove(); 
@@ -450,7 +444,14 @@ namespace FriendlyCheckers {
             Move myMove = getMove(start, yEnd, xEnd, this.whoseMove());
 
             doMove(myMove);
-            Piece add = myMove.getAdditions()[0]; 
+            Piece add = myMove.getAdditions()[0];
+            if (originalPieceType != add.getType()) {
+                lastAdvantage = turnNumber;
+            }
+            if (myMove.getRemovals().Count > 1) { //that means a piece has been taken
+                lastAdvantage = turnNumber;
+            }
+
             if (originalPieceType == add.getType() && myMove.getRemovals().Count == 2 && getDoableJumps(add).Count != 0) {
                 this.multiJumpLoc = myMove.getAdditions()[0].getCoordinates(); 
                 //don't change turnNumber
@@ -534,6 +535,11 @@ namespace FriendlyCheckers {
         }
 
         public GameStatus getGameStatus() {
+
+            if (turnNumber - lastAdvantage >= 40) {
+                return GameStatus.DRAW;
+            }
+
             if (!canJumpSomewhere() && !canMoveSomewhere()) {
                 if (whoseMove() == PieceColor.BLACK) {
                     if (redPieces > 0) {
