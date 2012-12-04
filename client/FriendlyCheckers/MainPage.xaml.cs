@@ -322,6 +322,7 @@ namespace FriendlyCheckers
             PageTitle.Text = "Credentials";
             LayoutRoot.Children.Remove(OptionsPanel);
             LayoutRoot.Children.Add(CredPanel);
+            FocusLost(sender, e);
         }
         private void NewGame_Setup(object sender, RoutedEventArgs e)
         {
