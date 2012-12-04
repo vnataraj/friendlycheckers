@@ -95,6 +95,7 @@ namespace FriendlyCheckers{
         private bool communication;
         private bool getAcceptMatchState;
         private bool createUserState;
+        private bool exists;
         
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.getQueueState = false;
@@ -109,6 +110,7 @@ namespace FriendlyCheckers{
             this.getSaveDataState = false;
             this.getAcceptMatchState = false;
             this.createUserState = false;
+            this.exists = false;
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
@@ -199,6 +201,10 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(createUserFailure))
             {
+                if(responseFromServer.Contains("exists"))
+                {
+                    this.exists=true;
+                }
                 this.createUserState=false;
                 return;
             }
@@ -278,9 +284,10 @@ namespace FriendlyCheckers{
         {
             return;
         }
-        public void writeToServer(string username, int matchID, int moveNumber, SaveData data, GameData data2)
+        public void writeToServer(string username, SaveData saveData, GameData gameData)
         {
-            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + matchID.ToString() + "&Notation="; // parse move!!!
+            string str = saveData.ToString() +" "+ gameData.ToString();
+            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" + saveData.getNumMoves().ToString()+"&Notation="+encodeHttp(str); // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
