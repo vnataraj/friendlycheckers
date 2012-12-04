@@ -165,7 +165,7 @@ namespace FriendlyCheckers
         {
             ContentPanel.Children.Remove(singleplayer);
             ContentPanel.Children.Remove(multiplayer_local);
-            ContentPanel.Children.Remove(multiplayer_online);
+            //ContentPanel.Children.Remove(multiplayer_online);
             ContentPanel.Children.Remove(options);
             ContentPanel.Children.Remove(about);
         }
@@ -259,11 +259,13 @@ namespace FriendlyCheckers
                 saveButtons = new List<SaveDataBox>();
                 List<SaveData> saveData = netLogic.getGetSaveData(); 
                 if (saveData == null) return;
-                foreach (UIElement child in SaveGamePanel.Children)
-                {
-                    if(!child.Equals(NewGame))
-                        SaveGamePanel.Children.Remove(child);
-                }
+
+                //Clear old savedata
+                for(int k=SaveGamePanel.Children.Count-1; k>=0; k--)
+                    SaveGamePanel.Children.RemoveAt(k);
+                SaveGamePanel.Children.Add(NewGame);
+                //
+
                 int ind = 0;
                 foreach (SaveData sd in saveData) // add enabled boxes
                 {
@@ -291,6 +293,7 @@ namespace FriendlyCheckers
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             if (InGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
+            netLogic.getSaveData(dataDude.getUserName());
             RemoveInGameStats();
             clearCredStats();
             if (MenuState())
@@ -313,7 +316,7 @@ namespace FriendlyCheckers
             ///// restore main menu
             ContentPanel.Children.Add(singleplayer);
             ContentPanel.Children.Add(multiplayer_local);
-            ContentPanel.Children.Add(multiplayer_online);
+           // ContentPanel.Children.Add(multiplayer_online);
             ContentPanel.Children.Add(options);
             ContentPanel.Children.Add(about);
             /////
@@ -484,7 +487,8 @@ namespace FriendlyCheckers
         }
         public void LoadSaveGame(SaveData data)
         {
-            //GameData gameData = netLogic.getGameData(data.getMatchID());
+            //netLogic.getGameData(dataDude.getUserName(), data.getMatchID());
+            //GameData gameData = netLogic.getGameData();
         }
         public static void MakeMove(int boardX, int boardY)
         {
@@ -710,6 +714,10 @@ namespace FriendlyCheckers
                 dataDude.setCreds(UserName.Text, Password.Password);
                 ResetCredsPanel();
             }
+            else
+            {
+                dataDude.setCreds("", "");
+            }
         }
         private void FocusLost(object sender, EventArgs e)
         {
@@ -754,6 +762,21 @@ namespace FriendlyCheckers
             LoginConfirm.Foreground = LoginConfirm.BorderBrush = new SolidColorBrush(Colors.White);
             LoginConfirm.Content = AvailableRect.Content = "";
             AvailableRect.Foreground = AvailableRect.BorderBrush = new SolidColorBrush(Colors.White);
+        }
+        private void Debug(object o, EventArgs e)
+        {
+            netLogic.checkUser("vipul");
+            Boolean b=netLogic.getCheckUserState();
+            System.Diagnostics.Debug.WriteLine("username is " + b+":0");
+            //netLogic.getSaveData("vipul");
+            List<SaveData> sd = netLogic.getGetSaveData();
+            Move m = logic.makeMove(logic.getAnyDoableMoveAttempt());
+            GameData gd = new GameData(new Move[] { m }, sd[0].getWhoseTurn());
+
+            netLogic.writeToServer("vipul", sd[0], gd);
+            netLogic.getGameData("vipul", sd[0].getMatchID());
+            netLogic.getGetGameDataState();
+
         }
     }
     public class SaveDataBox
