@@ -43,6 +43,9 @@ namespace FriendlyCheckers {
             this.yEnd = yEnd;
             this.xEnd = xEnd;
         }
+        public MoveAttempt(Vector v, Piece p)
+            : this(p.getCoordinates().getY(), p.getCoordinates().getX(),
+                v.getY() + p.getCoordinates().getY(), v.getX() + p.getCoordinates().getX()) { }
         public int getYStart() {
             return yStart;
         }
@@ -460,7 +463,7 @@ namespace FriendlyCheckers {
                 this.multiJumpLoc = null; 
             }
             this.moveNumber++;
-
+            //getOptimizedHeuristic(0, 3, new GameLogic(this));
             return myMove;
         }
 
@@ -490,23 +493,6 @@ namespace FriendlyCheckers {
             }
         }
 
-
-#if false
-        private void undoMove(Move move) {
-            if (move.getMoveNumber() == moveNumber - 1) {
-                foreach (Piece addition in move.getAdditions()) { //add removals
-                    board.removePieceFromCell(addition);
-                }
-                foreach (Piece removal in move.getRemovals()) { //remove additions
-                    board.addPieceToCell(removal);
-                }
-                turnNumber--;
-            } else {
-                throw new BadMoveNumberException();
-            }
-        } 
-#endif
-
         public PieceColor whoseMove() {
             if (turnNumber % 2 == 1) {
                 return PieceColor.RED;
@@ -534,7 +520,9 @@ namespace FriendlyCheckers {
             return newP; 
         }
 
-        public GameStatus getGameStatus() {
+        public GameStatus getGameStatus() { 
+
+            System.Diagnostics.Debug.WriteLine("redPieces: " + redPieces + ". blackPieces: " + blackPieces); 
 
             if (turnNumber - lastAdvantage >= 40) {
                 return GameStatus.DRAW;
@@ -563,6 +551,47 @@ namespace FriendlyCheckers {
                 return GameStatus.NOWINNER;
             }
             return GameStatus.DRAW;
+        }
+
+        public static List<List<MoveAttempt>> getFullTurns(List<MoveAttempt> possibility, GameLogic g) { 
+            List<List<MoveAttempt>> fullturns = new List<List<MoveAttempt>>(); 
+            g.makeMove(possibility[possibility.Count-1]); 
+            if(g.multiJumpLoc == null) { 
+                fullturns.Add(possibility);
+            } else { 
+                foreach(Vector v in g.getDoableJumps(g.board.getCellContents(g.multiJumpLoc))) { 
+                    MoveAttempt move = new MoveAttempt(v, g.board.getCellContents(g.multiJumpLoc)); 
+                    List<MoveAttempt> p = new List<MoveAttempt>(); 
+                    p.AddRange(possibility); 
+                    p.Add(move); 
+                    GameLogic newG = new GameLogic(g);
+                    g.makeMove(move); 
+                    fullturns.AddRange(getFullTurns(p, newG)); 
+                }
+            }
+            return fullturns; 
+        }
+
+
+        private static double getOptimizedHeuristic(int depth, int maxDepth, GameLogic g) {
+            if (depth == maxDepth || g.getGameStatus() != GameStatus.NOWINNER) {
+                return g.calculateHeuristic();
+            } else {
+                PieceColor currentPlayer = g.whoseMove();
+                List<MoveAttempt> starting = g.getAllDoableMoveJumpAttempts();
+                List<List<MoveAttempt>> poss = new List<List<MoveAttempt>>(); 
+                foreach (MoveAttempt possibility in starting) {
+                    List<MoveAttempt> p = new List<MoveAttempt>(); 
+                    p.Add(possibility); 
+                    foreach(List<MoveAttempt> fullturn in getFullTurns(p, new GameLogic(g))) { 
+                        poss.Add(fullturn); 
+                    }
+                }
+                System.Diagnostics.Debug.WriteLine("starting length: " + starting.Count + ". poss length: " + poss.Count); 
+
+
+            }
+            return .345;
         }
 
         private List<Vector> getDoableMoves(Piece p) {
@@ -621,8 +650,46 @@ namespace FriendlyCheckers {
             return doable; 
         }
 
+        public double calculateHeuristic() { //in terms of player who made last move
+            GameStatus status = getGameStatus();
+            if (status == GameStatus.DRAW) {
+                return 0.5;
+            } else if (status == GameStatus.BLACKWINS) {
+                if (whoseMove() == PieceColor.BLACK) {
+                    return 0.0;
+                } else {
+                    return 1.0;
+                }
+            } else if (status == GameStatus.REDWINS) {
+                if (whoseMove() == PieceColor.RED) {
+                    return 0.0;
+                } else {
+                    return 1.0;
+                }
+            } else if (status == GameStatus.NOWINNER) {
+                double his;
+                double mine;
+                if (whoseMove() == PieceColor.BLACK) {
+                    mine = (double)redPieces;
+                    his = (double)blackPieces;
+                } else {
+                    mine = (double)blackPieces;
+                    his = (double)redPieces;
+                }
+                return mine / (mine + his);
+            } else {
+                throw new UnreachableCodeException();
+            }
+        }
+
         public MoveAttempt getEasyMove() {
-            return getRandomDoableMoveJump();
+            //return getRandomDoableMoveJump();
+            MoveAttempt m;
+            if ((m = getAnyDoableMoveAttempt()) != null) {
+                return m;
+            } else {
+                return getRandomDoableMoveJump();
+            }
         }
         public MoveAttempt getHardMove() {
             return getRandomDoableMoveJump();
@@ -665,7 +732,12 @@ namespace FriendlyCheckers {
             throw new NoMovesLeftException();
         }
 
-        public MoveAttempt getAnyDoableMoveAttempt() { 
+        public MoveAttempt getAnyDoableMoveAttempt() {
+
+            if (multiJumpLoc != null) {
+                return null;
+            }
+
             PieceColor jumperColor = this.whoseMove();
             for (int y = 0; y < board.getHeight(); y++) {
                 for (int x = 0; x < board.getHeight(); x++) {
@@ -692,8 +764,12 @@ namespace FriendlyCheckers {
         }
         public List<MoveAttempt> getAllDoableMoveAttempts()
         {
+            
             PieceColor jumperColor = this.whoseMove();
             List<MoveAttempt> allMoves = new List<MoveAttempt>();
+            if (multiJumpLoc != null) {
+                return allMoves;
+            }
             for (int y = 0; y < board.getHeight(); y++)
             {
                 for (int x = 0; x < board.getHeight(); x++)
@@ -713,6 +789,13 @@ namespace FriendlyCheckers {
         }
         public List<MoveAttempt> getAllDoableJumpAttempts()
         {
+            if (multiJumpLoc != null) {
+                List<MoveAttempt> moves = new List<MoveAttempt>();
+                foreach (Vector v in getDoableJumps(board.getCellContents(multiJumpLoc))) {
+                    moves.Add(new MoveAttempt(v, board.getCellContents(multiJumpLoc)));
+                }
+                return moves;
+            }
             PieceColor jumperColor = this.whoseMove();
             List<MoveAttempt> allMoves = new List<MoveAttempt>();
             for (int y = 0; y < board.getHeight(); y++)
@@ -760,6 +843,9 @@ namespace FriendlyCheckers {
             return (jumps.Count==0? null : jumps[rand]);
         }
         public MoveAttempt getAnyDoableJumpAttempt() {
+            if (multiJumpLoc != null) {
+                return new MoveAttempt(getDoableJumps(board.getCellContents(multiJumpLoc))[0], board.getCellContents(multiJumpLoc));
+            }
             PieceColor jumperColor = this.whoseMove();
             for (int y = 0; y < board.getHeight(); y++) {
                 for (int x = 0; x < board.getHeight(); x++) {
