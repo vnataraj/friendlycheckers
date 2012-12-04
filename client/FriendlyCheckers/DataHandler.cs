@@ -83,6 +83,42 @@ namespace FriendlyCheckers
         }
         public List<MoveAttempt> getMoves() { return moves; }
         public PieceColor getWhoseMove() { return whoseMove; }
+
+        public String toString() {
+            String s = "";
+            if (whoseMove == PieceColor.BLACK) {
+                s += "B";
+            } else {
+                s += "R";
+            }
+            foreach (MoveAttempt a in moves) {
+                s += a.toString();
+                s += "|"; 
+            }
+            return s; 
+        }
+        public static GameData fromString(String ma) {
+            PieceColor whoseM;
+            if (ma[0] == 'B') {
+                whoseM = PieceColor.BLACK;
+            } else if (ma[0] == 'R') {
+                whoseM = PieceColor.BLACK;
+            } else {
+                throw new Exception();
+            }
+            String mas = ma.Substring(1); 
+            String []moves = mas.Split(new String[] {"|"}, StringSplitOptions.None); 
+            moves[moves.Length -1] = null; 
+            List<MoveAttempt> lala = new List<MoveAttempt>();
+            foreach (String move in moves) {
+                if (move == null) {
+                    break;
+                }
+                lala.Add(MoveAttempt.fromString(move));
+            }
+            return new GameData(lala, whoseM); 
+
+        }
     }
     public class SaveData
     {
