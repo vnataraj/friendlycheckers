@@ -11,6 +11,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Collections.Generic;
 using System.Threading;
+using System.Windows.Threading;
 
 namespace FriendlyCheckers{
     public class UnknownException : System.Exception { }
@@ -102,32 +103,38 @@ namespace FriendlyCheckers{
             this.communication=false;
             this.getGameDataState = false;
             this.getSaveDataState = false;
-            this.communication = false;
             this.getAcceptMatchState = false;
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
+        private static ManualResetEvent allDone = new ManualResetEvent(false);
 
         private void requestHandler(IAsyncResult result)
         {
             webreq = (HttpWebRequest)result.AsyncState;
             response = (HttpWebResponse)webreq.EndGetResponse(result);
             Stream dataStream = response.GetResponseStream();
-            reader = new StreamReader(dataStream);
-            responseFromServer = reader.ReadToEnd();
-            this.communication = true;
-            System.Diagnostics.Debug.WriteLine("Communication is true!!");
+
+            using (reader = new StreamReader(dataStream))
+            {
+                responseFromServer = reader.ReadToEnd();
+                //TextBlockResults.Text = results; //-- on another thread!
+                this.checker(responseFromServer);
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Checking...");
+                });
+            }
             dataStream.Close();
             reader.Close();
             response.Close();
-            this.checker(responseFromServer);
+            allDone.Set();
             return;
         }
         private void sendHttpRequest(string serverpath)
         {
             request = (HttpWebRequest)WebRequest.Create(serverpath);
             request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-            return;
         }
         private void checker(string responseFromServer)
         {
@@ -219,7 +226,7 @@ namespace FriendlyCheckers{
         private string parseUrl(string[] a)
         {
             string b=a.ToString();
-            HttpUtility.UrlEncode(b);
+            HttpUtility.UrlDecode(b);
             return b;
         }
         public void checkUser(string username) //should be void
@@ -359,6 +366,10 @@ namespace FriendlyCheckers{
         public bool getCheckUserState()
         {
             return checkUserExistsState;
+        }
+        private void setCommunicationState(bool b)
+        {
+            this.communication = b;
         }
         public bool getGetLoginState()
         {
