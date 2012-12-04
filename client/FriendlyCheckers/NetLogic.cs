@@ -174,7 +174,6 @@ namespace FriendlyCheckers{
             else if (responseFromServer.Contains(writeToServerSuccess))
             {
                 this.writeState = true;
-                
                 return;
             }
             else if (responseFromServer.Contains(acceptMatchSuccess))
@@ -202,7 +201,7 @@ namespace FriendlyCheckers{
             else if(responseFromServer.Contains(getSaveDataSuccess))
             {
                 this.getSaveDataState = true;
-
+                return;
             }
             else if (responseFromServer.Contains(loginSuccess))
             {
@@ -236,18 +235,22 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(requestMatchFailure))
             {
+                this.getRequestState = false;
                 return;
             }
             else if (responseFromServer.Contains(pollMatchFailure))
             {
+                this.getPollMatchState = false;
                 return;
             }
             else if (responseFromServer.Contains(writeToServerFailure))
             {
+                this.writeState = false;
                 return;
             }
             else if (responseFromServer.Contains(pollRequestFailure))
             {
+                this.getPollRequestState = false;
                 return;
             }
             else if(responseFromServer.Contains(getSaveDataFailure))
