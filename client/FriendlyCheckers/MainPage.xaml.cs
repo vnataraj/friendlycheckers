@@ -465,7 +465,7 @@ namespace FriendlyCheckers
             if(sender.Equals(Make_A_Move))used_make_move = true;
             PieceColor whoseMove = logic.whoseMove();
             MoveAttempt a;
-            if (DIFFICULT)
+            if (DIFFICULT && wait_for_computer)
                 a = logic.getHardMove();
             else
                 a = logic.getEasyMove();
