@@ -322,6 +322,7 @@ namespace FriendlyCheckers
             PageTitle.Text = "Credentials";
             LayoutRoot.Children.Remove(OptionsPanel);
             LayoutRoot.Children.Add(CredPanel);
+            FocusLost(sender, e);
         }
         private void NewGame_Setup(object sender, RoutedEventArgs e)
         {
@@ -607,7 +608,7 @@ namespace FriendlyCheckers
         private void Process_Username(object sender, EventArgs e)
         {
             netLogic.checkUser(UserName.Text);
-            Boolean valid = netLogic.getCheckUserState();
+            Boolean valid = !netLogic.getCheckUserState();
             AvailableRect.Foreground = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.BorderBrush = new SolidColorBrush(valid ? Valid : Invalid);
             AvailableRect.Content = valid ? "Available" : "Unavailable";
@@ -622,6 +623,16 @@ namespace FriendlyCheckers
 
             if (success)
                 dataDude.setCreds(UserName.Text, Password.Password);
+        }
+        private void FocusLost(object sender, EventArgs e)
+        {
+            netLogic.checkUser(UserName.Text);
+            netLogic.login(UserName.Text, Password.Password);
+            CheckAvailability.IsEnabled = true;
+        }
+        private void FocusGained(object sender, EventArgs e)
+        {
+            CheckAvailability.IsEnabled = false;
         }
     }
     public class SaveDataBox

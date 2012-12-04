@@ -120,10 +120,7 @@ namespace FriendlyCheckers{
                 responseFromServer = reader.ReadToEnd();
                 //TextBlockResults.Text = results; //-- on another thread!
                 this.checker(responseFromServer);
-                Deployment.Current.Dispatcher.BeginInvoke(() =>
-                {
-                    MessageBox.Show("Checking...");
-                });
+                Deployment.Current.Dispatcher.BeginInvoke(() => {});
             }
             dataStream.Close();
             reader.Close();
