@@ -32,18 +32,8 @@ namespace FriendlyCheckers{
 
         /*
          * @vnataraj, CS252
-         * ideas: to create a Network Logic object that can be called by any of the other objects(aka Caleb's GameLogic object and Joe's GUI)
-         * basic concept idea is to create a service on the windows phone that calls a while loop every x seconds(defined in phone prefs)
-         * provide getter/setter methods in case manual getting/setting is required
-         * relay between all C# and server functions, no functions should be parsed from server directly in other objects
-         * codes are 42.xx on success and 666.xx on failure
          * 
-         * 
-         * 
-         * UPDATE: 11/28/12 need to fix request handler, only currently handles queuematch requests(need to handle all types)-> how to do it??
          */
-        private List<Piece> removals; //check with caleb on object types!!
-        private List<Piece> additions;
         private HttpWebRequest webreq;
         private HttpWebRequest request;
         private HttpWebResponse response;
@@ -268,21 +258,6 @@ namespace FriendlyCheckers{
             }
             return;
         }
-        public string ObjectToString(object obj)
-        {
-            MemoryStream ms = new MemoryStream();
-            //new BinaryFormatter().Serialize(ms, obj);         
-            return Convert.ToBase64String(ms.ToArray());
-        }
-
-        public object StringToObject(string base64String)
-        {
-            byte[] bytes = Convert.FromBase64String(base64String);
-            MemoryStream ms = new MemoryStream(bytes, 0, bytes.Length);
-            ms.Write(bytes, 0, bytes.Length);
-            ms.Position = 0;
-            return ms;
-        }
         private void parseSaveData(string a)
         {
             saveData=new List<SaveData>();
@@ -297,6 +272,34 @@ namespace FriendlyCheckers{
                 whoseMove = finished[4].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
 
                 saveData.Add(new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove));
+            }
+            return;
+        }
+        private string encodeGameData(GameData gameData)
+        {
+            Move[] moves = gameData.getMoves();
+            string str = gameData.getWhoseMove().ToString()+" ";
+            int i = 0;
+            while (i < gameData.getMoves().Length)
+            {
+                str += moves[i].ToString() + " ";
+            }
+            string a = HttpUtility.UrlEncode(str);
+            return a;
+        }
+        private void decodeGameData(string responseFromServer)
+        {
+            string[] lines = responseFromServer.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            string a = HttpUtility.UrlDecode(lines[1]);
+            //List<Move> moves;
+            PieceColor p;
+            for (int i = 1; i < lines.Length; i++)
+            {
+                string[] finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
+                if (finished[0].Equals("")) return;
+
+                p = finished[1].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
+              //  moves.Add(new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove));
             }
             return;
         }
@@ -315,14 +318,6 @@ namespace FriendlyCheckers{
                 throw cue;
             }
             return;
-/*            if (this.checkUserExistsState)
-            {
-                System.Diagnostics.Debug.WriteLine("USER EXISTS is true");
-                this.checkUserExistsState = false;
-                return true;
-            }
-            return false;
- */
         }
         public void getSaveData(string username)
         {
@@ -356,7 +351,7 @@ namespace FriendlyCheckers{
         public void writeToServer(string username, SaveData saveData, GameData gameData)
         {
             string str = gameData.ToString();
-            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" + saveData.getNumMoves().ToString() + "&Notation="; // parse move!!!
+            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" + saveData.getNumMoves().ToString() + "&Notation="+encodeGameData(gameData); // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
@@ -428,7 +423,6 @@ namespace FriendlyCheckers{
 
         public void requestMatch(string username, int gameID, string opponentName)
         {
-            this.getRequestState = false;
             serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&Opponentname="+opponentName;
             try
             {
@@ -514,6 +508,10 @@ namespace FriendlyCheckers{
         public bool getInternetState()
         {
             return internetState;
+        }
+        public bool getWriteState()
+        {
+            return writeState;
         }
         public List<SaveData> getGetSaveData()
         {
