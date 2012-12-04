@@ -200,6 +200,7 @@ namespace FriendlyCheckers{
             }
             else if(responseFromServer.Contains(getSaveDataSuccess))
             {
+                parseSaveData(responseFromServer);
                 this.getSaveDataState = true;
                 return;
             }
