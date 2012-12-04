@@ -418,5 +418,9 @@ namespace FriendlyCheckers{
         {
             return getAcceptMatchState;
         }
+        public bool getCreateUserState()
+        {
+            return createUserState;
+        }
     }
 }
