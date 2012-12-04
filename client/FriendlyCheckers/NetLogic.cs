@@ -144,6 +144,7 @@ namespace FriendlyCheckers{
         }
         private void checker(string responseFromServer)
         {
+            System.Diagnostics.Debug.WriteLine("in checker, responseFromServer is:" + responseFromServer + ":0"); 
             if (responseFromServer.Contains(queueMatchSuccess))
             {
                 this.getQueueState = true;
@@ -188,6 +189,7 @@ namespace FriendlyCheckers{
             else if(responseFromServer.Contains(getGameDataSuccess))
             {
                 this.getGameDataState = true;
+                decodeGameData(responseFromServer);
                 return;
             }
             else if(responseFromServer.Contains(getSaveDataSuccess))
@@ -277,26 +279,32 @@ namespace FriendlyCheckers{
         }
         private string encodeGameData(GameData gameData)
         {
+            System.Diagnostics.Debug.WriteLine("in method enocode game data");
             Move[] moves = gameData.getMoves();
             string str = gameData.getWhoseMove().ToString()+" ";
             int i = 0;
             while (i < gameData.getMoves().Length)
             {
                 str += moves[i].ToString() + " ";
+                i++;
             }
+            System.Diagnostics.Debug.WriteLine("Here's the string that was encoded" + str+" :0");
             string a = HttpUtility.UrlEncode(str);
             return a;
         }
         private void decodeGameData(string responseFromServer)
         {
+            System.Diagnostics.Debug.WriteLine("Here's the responseFromServer string:" +
+                responseFromServer + ":0");
             string[] lines = responseFromServer.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             string a = HttpUtility.UrlDecode(lines[1]);
+            System.Diagnostics.Debug.WriteLine("Here's the gamedata string" + a + " :0");
             //List<Move> moves;
             PieceColor p;
             for (int i = 1; i < lines.Length; i++)
             {
                 string[] finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
-                if (finished[0].Equals("")) return;
+                if (finished[0].Equals("") || finished.Length ==0) return;
 
                 p = finished[1].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
               //  moves.Add(new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove));
@@ -336,6 +344,7 @@ namespace FriendlyCheckers{
         }
         public void getGameData(string username, int matchID)
         {
+            System.Diagnostics.Debug.WriteLine("entered getGameData");
             serverpath = server + "?message=GetGameData&" + "Username=" + username + "&MatchID=" + matchID.ToString();
             try
             {
@@ -350,8 +359,11 @@ namespace FriendlyCheckers{
         }
         public void writeToServer(string username, SaveData saveData, GameData gameData)
         {
+            System.Diagnostics.Debug.WriteLine("entered writeToServer");
             string str = gameData.ToString();
-            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" + saveData.getNumMoves().ToString() + "&Notation="+encodeGameData(gameData); // parse move!!!
+            serverpath = server + "?message=RecordMove&" + "Username=" + username + 
+                "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" +
+                saveData.getNumMoves().ToString() + "&Notation="+encodeGameData(gameData); // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
@@ -495,6 +507,7 @@ namespace FriendlyCheckers{
         }
         public bool getGetGameDataState()
         {
+            System.Diagnostics.Debug.WriteLine("entered getGetGameDataState");
             return getGameDataState;
         }
         public bool getGetAcceptMatchState()
@@ -521,6 +534,10 @@ namespace FriendlyCheckers{
                 return saveData;
             }
             return saveData;
+        }
+        public GameData getGameDataReal()
+        { 
+            return gameData;
         }
     }
 }
