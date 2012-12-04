@@ -12,6 +12,7 @@ using System.Windows.Shapes;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Threading;
+using System.Runtime.Serialization;
 using Microsoft.Phone.Net.NetworkInformation;
 
 namespace FriendlyCheckers{
@@ -267,18 +268,24 @@ namespace FriendlyCheckers{
             }
             return;
         }
-        private void createUrl(List<Piece> removals, List<Piece> additions)
+        public string ObjectToString(object obj)
         {
-            
+            MemoryStream ms = new MemoryStream();
+            //new BinaryFormatter().Serialize(ms, obj);         
+            return Convert.ToBase64String(ms.ToArray());
         }
-        private string encodeHttp(string b)
+
+        public object StringToObject(string base64String)
         {
-            string a;
-            a = HttpUtility.UrlEncode(b);
-            return a;
+            byte[] bytes = Convert.FromBase64String(base64String);
+            MemoryStream ms = new MemoryStream(bytes, 0, bytes.Length);
+            ms.Write(bytes, 0, bytes.Length);
+            ms.Position = 0;
+            return ms;
         }
         private void parseSaveData(string a)
         {
+            saveData=new List<SaveData>();
             string[] lines = a.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             PieceColor p, whoseMove;
             for (int i = 1; i < lines.Length; i++)
@@ -349,7 +356,7 @@ namespace FriendlyCheckers{
         public void writeToServer(string username, SaveData saveData, GameData gameData)
         {
             string str = gameData.ToString();
-            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" + saveData.getNumMoves().ToString()+"&Notation="+encodeHttp(str); // parse move!!!
+            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" + saveData.getNumMoves().ToString() + "&Notation="; // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
