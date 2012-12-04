@@ -209,6 +209,7 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(queueMatchFailure))
             {
+                this.getQueueState = false;
                 return;
             }
             else if (responseFromServer.Contains(requestMatchFailure))
@@ -232,6 +233,12 @@ namespace FriendlyCheckers{
         private void createUrl(List<Piece> removals, List<Piece> additions)
         {
             
+        }
+        private string encodeHttp(string b)
+        {
+            string a;
+            a = HttpUtility.UrlEncode(b);
+            return a;
         }
         private string parseUrl(string[] a)
         {
@@ -271,9 +278,9 @@ namespace FriendlyCheckers{
         {
             return;
         }
-        public void writeToServer(string username, int gameID, SaveData savedata, GameData gamedata)
+        public void writeToServer(string username, int matchID, int moveNumber, SaveData data, GameData data2)
         {
-            serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&MatchID="+savedata.getMatchID().ToString()+"&SaveData="+savedata.ToString()+"&GameData="+gamedata.ToString(); // parse move!!!
+            serverpath = server + "?message=RecordMove&" + "Username=" + username + "&MatchID" + matchID.ToString() + "&Notation="; // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
@@ -307,8 +314,14 @@ namespace FriendlyCheckers{
             }
             return;
         }
+        private string user;
         public void createUser(string username, string password)
         {
+            if (createUserState && user!=null && user.Equals(username))
+            {
+                return;
+            }
+            user = username;
             serverpath = server + "?message=CreateUser&" + "Username=" + username + "&Password=" + password;
             try
             {
@@ -322,7 +335,6 @@ namespace FriendlyCheckers{
         }
         public void queueMatch(string username, int gameID)
         {
-            this.getQueueState = false;
             string serverpath = server + "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
             try
             {
