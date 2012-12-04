@@ -683,9 +683,8 @@ namespace FriendlyCheckers {
         }
 
         public MoveAttempt getEasyMove() {
-            //return getRandomDoableMoveJump();
             MoveAttempt m;
-            if ((m = getAnyDoableMoveAttempt()) != null) {
+            if (!forceJumps && (m = this.getRandomDoableMoveAttempt()) != null) {
                 return m;
             } else {
                 return getRandomDoableMoveJump();
