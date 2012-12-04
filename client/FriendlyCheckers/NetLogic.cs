@@ -188,7 +188,6 @@ namespace FriendlyCheckers{
             }
             else if(responseFromServer.Contains(getGameDataSuccess))
             {
-                this.getGameDataState = true;
                 decodeGameData(responseFromServer);
                 return;
             }
@@ -277,20 +276,9 @@ namespace FriendlyCheckers{
             }
             return;
         }
-        private string encodeGameData(GameData gameData)
+        private string encodeGameData(string gameData)
         {
-            System.Diagnostics.Debug.WriteLine("in method enocode game data");
-            List<MoveAttempt> moves = gameData.getMoves();
-            string str = gameData.getWhoseMove();
-            int i = 0;
-            while (i < gameData.getMoves().Count)
-            {
-                str += moves[i].ToString() + " ";
-                i++;
-            }
-            System.Diagnostics.Debug.WriteLine("Here's the string that was encoded" + str+" :0");
-            string a = HttpUtility.UrlEncode(str);
-            return a;
+            return HttpUtility.UrlEncode(gameData);
         }
         private void decodeGameData(string responseFromServer)
         {
@@ -298,17 +286,8 @@ namespace FriendlyCheckers{
                 responseFromServer + ":0");
             string[] lines = responseFromServer.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             string a = HttpUtility.UrlDecode(lines[1]);
-            System.Diagnostics.Debug.WriteLine("Here's the gamedata string" + a + " :0");
-            //List<Move> moves;
-            PieceColor p;
-            for (int i = 1; i < lines.Length; i++)
-            {
-                string[] finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
-                if (finished[0].Equals("") || finished.Length ==0) return;
-
-                p = finished[1].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
-              //  moves.Add(new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove));
-            }
+            gameData = GameData.fromString(a);
+            this.getGameDataState = true;
             return;
         }
         public void checkUser(string username) //should be void
@@ -363,7 +342,7 @@ namespace FriendlyCheckers{
             string str = gameData.ToString();
             serverpath = server + "?message=RecordMove&" + "Username=" + username +
                 "&MatchID=" + saveData.getMatchID().ToString() + "&MoveNumber=" +
-                saveData.getNumMoves().ToString() + "&Notation=" + encodeGameData(gameData); // parse move!!!
+                saveData.getNumMoves().ToString() + "&Notation=" + encodeGameData(gameData.toString()); // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
