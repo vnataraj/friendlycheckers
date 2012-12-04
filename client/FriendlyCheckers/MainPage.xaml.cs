@@ -770,8 +770,9 @@ namespace FriendlyCheckers
             System.Diagnostics.Debug.WriteLine("username is " + b+":0");
             //netLogic.getSaveData("vipul");
             List<SaveData> sd = netLogic.getGetSaveData();
-            Move m = logic.makeMove(logic.getAnyDoableMoveAttempt());
-            GameData gd = new GameData(new Move[] { m }, sd[0].getWhoseTurn());
+            List<MoveAttempt> ma = new List<MoveAttempt>();
+            ma.Add(logic.getAnyDoableMoveAttempt());
+            GameData gd = new GameData(ma, sd[0].getWhoseTurn());
 
             netLogic.writeToServer("vipul", sd[0], gd);
             netLogic.getGameData("vipul", sd[0].getMatchID());

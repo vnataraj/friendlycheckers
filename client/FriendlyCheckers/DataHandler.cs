@@ -73,15 +73,15 @@ namespace FriendlyCheckers
 	}
     public class GameData
     {
-        private Move[] moves;
+        private List<MoveAttempt> moves;
         private PieceColor whoseMove;
 
-        public GameData(Move[] moves, PieceColor whoseMove)
+        public GameData(List<MoveAttempt> moves, PieceColor whoseMove)
         {
             this.moves = moves;
             this.whoseMove = whoseMove;
         }
-        public Move[] getMoves() { return moves; }
+        public List<MoveAttempt> getMoves() { return moves; }
         public PieceColor getWhoseMove() { return whoseMove; }
     }
     public class SaveData

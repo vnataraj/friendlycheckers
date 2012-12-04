@@ -280,10 +280,10 @@ namespace FriendlyCheckers{
         private string encodeGameData(GameData gameData)
         {
             System.Diagnostics.Debug.WriteLine("in method enocode game data");
-            Move[] moves = gameData.getMoves();
-            string str = gameData.getWhoseMove().ToString()+" ";
+            List<MoveAttempt> moves = gameData.getMoves();
+            string str = gameData.getWhoseMove();
             int i = 0;
-            while (i < gameData.getMoves().Length)
+            while (i < gameData.getMoves().Count)
             {
                 str += moves[i].ToString() + " ";
                 i++;
@@ -361,9 +361,9 @@ namespace FriendlyCheckers{
         {
             System.Diagnostics.Debug.WriteLine("entered writeToServer");
             string str = gameData.ToString();
-            serverpath = server + "?message=RecordMove&" + "Username=" + username + 
-                "&MatchID" + saveData.getMatchID().ToString() + "&MoveNumber=" +
-                saveData.getNumMoves().ToString() + "&Notation="+encodeGameData(gameData); // parse move!!!
+            serverpath = server + "?message=RecordMove&" + "Username=" + username +
+                "&MatchID=" + saveData.getMatchID().ToString() + "&MoveNumber=" +
+                saveData.getNumMoves().ToString() + "&Notation=" + encodeGameData(gameData); // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
