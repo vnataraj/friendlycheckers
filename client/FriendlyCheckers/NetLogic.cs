@@ -22,6 +22,7 @@ namespace FriendlyCheckers{
     public class PollRequestException : System.Exception { }
     public class WriteToServerException : System.Exception { }
     public class CheckUserException : System.Exception { }
+    public class CreateUserException : System.Exception { }
     public class NetworkLogic
     {
 
@@ -68,6 +69,7 @@ namespace FriendlyCheckers{
         private static string pollMatchNoMoveSuccess="42.8";
         private static string checkUserExistsSuccess = "42.10";
         private static string getGameDataSuccess = "42.12";
+        private static string createUserSuccess = "42.13";
         private static string loginFailure = "666.1";
         private static string queueMatchFailure = "666.2";
         private static string requestMatchFailure = "666.3";
@@ -78,6 +80,7 @@ namespace FriendlyCheckers{
         private static string getSaveDataFailure = "666.9";
         private static string checkUserFailure = "666.10";
         private static string getGameDataFailure = "666.12";
+        private static string createUserFailure = "666.13";
         private static string unknownError = "666.666";
 
         private bool getLoginState;
@@ -91,6 +94,7 @@ namespace FriendlyCheckers{
         private bool getGameDataState;
         private bool communication;
         private bool getAcceptMatchState;
+        private bool createUserState;
         
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.getQueueState = false;
@@ -104,6 +108,7 @@ namespace FriendlyCheckers{
             this.getGameDataState = false;
             this.getSaveDataState = false;
             this.getAcceptMatchState = false;
+            this.createUserState = false;
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
@@ -135,13 +140,16 @@ namespace FriendlyCheckers{
         }
         private void checker(string responseFromServer)
         {
-            System.Diagnostics.Debug.WriteLine("response from server is " + responseFromServer);
-            
             if (responseFromServer.Contains(queueMatchSuccess))
             {
                 this.getQueueState = true;
                 return;
             } 
+            else if (responseFromServer.Contains(createUserSuccess))
+            {
+                this.createUserState=true;
+                return;
+            }
             else if (responseFromServer.Contains(requestMatchSuccess))
             {
                 this.getRequestState = true;
@@ -187,6 +195,11 @@ namespace FriendlyCheckers{
             else if (responseFromServer.Contains(checkUserFailure))
             {
                 this.checkUserExistsState = false;
+                return;
+            }
+            else if (responseFromServer.Contains(createUserFailure))
+            {
+                this.createUserState=false;
                 return;
             }
             else if (responseFromServer.Contains(loginFailure))
@@ -294,6 +307,19 @@ namespace FriendlyCheckers{
             }
             return;
         }
+        public void createUser(string username, string password)
+        {
+            serverpath = server + "?message=CreateUser&" + "Username=" + username + "&Password=" + password;
+            try
+            {
+                sendHttpRequest(serverpath);
+            }
+            catch (WebException we)
+            {
+                System.Diagnostics.Debug.WriteLine("Caught exception : " + we.ToString());
+            }
+            return;
+        }
         public void queueMatch(string username, int gameID)
         {
             this.getQueueState = false;
@@ -391,6 +417,10 @@ namespace FriendlyCheckers{
         public bool getGetAcceptMatchState()
         {
             return getAcceptMatchState;
+        }
+        public bool getCreateUserState()
+        {
+            return createUserState;
         }
     }
 }
