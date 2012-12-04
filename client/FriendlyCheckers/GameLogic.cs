@@ -289,6 +289,7 @@ namespace FriendlyCheckers {
         int redPieces = 0; 
         int turnNumber = 0; 
         List<Move> movesMade;
+        List<MoveAttempt> successMoves; 
 
         int lastAdvantage = 0; //the turnNumber of the last move that either
                                //made a king or took a piece.
@@ -361,7 +362,8 @@ namespace FriendlyCheckers {
             this.board = new Board(boardWidth, boardHeight);
             moveNumber = 0;
             turnNumber = 0;
-            movesMade = new List<Move>(); 
+            movesMade = new List<Move>();
+            successMoves = new List<MoveAttempt>(); 
         }
 
         public GameLogic(GameLogic g) { //does a deep copy of GameLogic
@@ -832,6 +834,8 @@ namespace FriendlyCheckers {
             Move myMove = getMove(start, yEnd, xEnd, this.whoseMove());
 
             doMove(myMove);
+            successMoves.Add(new MoveAttempt(yStart, xStart, yEnd, xEnd)); 
+
             Piece add = myMove.getAdditions()[0];
             if (originalPieceType != add.getType()) {
                 lastAdvantage = turnNumber;
@@ -862,8 +866,8 @@ namespace FriendlyCheckers {
             }
         }
 
-        public List<Move> getMovesMade() {
-            return this.movesMade;
+        public List<MoveAttempt> getMoveAttemptsMade() {
+            return this.successMoves;
         }
 
         public void makeMoves(List<Move> moves) {
