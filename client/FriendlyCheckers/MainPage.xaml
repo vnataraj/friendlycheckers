@@ -45,6 +45,7 @@
             <Button Name="multiplayer_online" Click="SaveGame_Setup" Margin="-12,556,92,6" Height="70">Multiplayer Online</Button>
             <Button Name="options"  Click="Show_Options" Margin="351,460,8,74" FontSize ="40" Height="125">+</Button>
             <Button Name="about"  Click="Show_About" Margin="351,570,8,19" FontSize ="26" Height="70">?</Button>
+            <Button Name="RefreshInGameButton" Click="RefreshInGame" Height="70" Width ="450" Margin="0,450,0,0" FontSize="25" >Refresh</Button>
         </Grid>
         <Grid Name ="SaveGamePanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <Button Name="NewGame" Click="FindRandomUser" Height="75" Width ="250" FontSize="25" Margin="-230,478,0,16">Find Random</Button>
@@ -61,7 +62,7 @@
         </StackPanel>
         <StackPanel Name ="AboutPanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <TextBlock x:Name="GameInfo" TextWrapping="Wrap" Text="FriendlyCheckers was the joint effort of four people working on four components of the game:" FontSize="24" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="157" Width="447" />
-            <TextBlock x:Name="JoeInfo" TextWrapping="Wrap" Text="Menus, Images, and Visualization" FontSize ="20" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="29" Width="447" />
+            <TextBlock x:Name="JoeInfo" TextWrapping="Wrap" Text="Menus, Images, Visualization, and Glue" FontSize ="20" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="29" Width="447" />
             <TextBlock x:Name="JoeName" Text="Joseph Klemen" FontSize="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="76" Width="450" />
             <TextBlock x:Name="CalebInfo" TextWrapping="Wrap" Text="Game Logic, Game Play and AI" FontSize ="20" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="29" Width="444" />
             <TextBlock x:Name="CalebName" Text="Caleb Rouleau" FontSize ="30" Margin="9,-7,0,0" Style="{StaticResource PhoneTextNormalStyle}" Height="83" Width="446" />

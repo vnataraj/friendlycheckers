@@ -54,6 +54,7 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(CredPanel);
             LayoutRoot.Children.Remove(SaveGamePanel);
             ContentPanel.Children.Remove(back_to_saves);
+            ContentPanel.Children.Remove(RefreshInGameButton);
             checkerX = checkerY = -1;
 
             netLogic = new NetworkLogic();
@@ -218,6 +219,7 @@ namespace FriendlyCheckers
                 LayoutRoot.Children.Remove(SaveGamePanel);
                 ContentPanel.Children.Remove(quit);
                 ContentPanel.Children.Add(back_to_saves);
+                ContentPanel.Children.Add(RefreshInGameButton);
                 ContentPanel.Children.Add(mainCanvas);
             }
             game_state = GameState.ONLINE_MULTI;
@@ -246,6 +248,7 @@ namespace FriendlyCheckers
                 LayoutRoot.Children.Add(TitlePanel);
             ContentPanel.Children.Remove(mainCanvas);
             ContentPanel.Children.Remove(back_to_saves);
+            ContentPanel.Children.Remove(RefreshInGameButton);
             ContentPanel.Children.Add(quit);
             if (!dataDude.hasCreds())
             {
@@ -499,6 +502,22 @@ namespace FriendlyCheckers
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
+        private void RefreshInGame(object o, RoutedEventArgs e)
+        {
+            GameData dat = netLogic.getGameData(dataDude.getUserName(), dataDude.getCurrentSaveData().getMatchID());
+            int turn = logic.getMoveNumber();
+
+            List<MoveAttempt> moves = dat.getMoves();
+            for (int k = turn; k < moves.Count; k++ )
+            {
+                MoveAttempt move = moves[k];
+                Move m = logic.makeMove(move);
+                handleMove(m);
+            }
+
+            TURN_TIMER.Start();
+            wait_for_timer = true;
+        }
         private void Refresh(object o, RoutedEventArgs e)
         {
             bool hasMatchMaking = MatchMaking == null ? false : SaveGamePanel.Children.Contains(MatchMaking.getButton());
