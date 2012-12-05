@@ -229,7 +229,7 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(pollMatchFailure))
             {
-                this.getPollMatchState = false;
+                this.checkUserExistsState = true;
                 return;
             }
             else if (responseFromServer.Contains(writeToServerFailure))
