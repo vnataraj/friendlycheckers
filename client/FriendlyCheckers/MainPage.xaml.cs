@@ -625,7 +625,7 @@ namespace FriendlyCheckers
         private static bool canMove()
         {
             return  !(game_state == GameState.END_GAME || (game_state == GameState.ONLINE_MULTI &&
-                !dataDude.getCurrentSaveData().getWhoseTurn().Equals(dataDude.getCurrentSaveData().getPlayerColor())));
+                !logic.whoseMove().Equals(dataDude.getCurrentSaveData().getPlayerColor())));
         }
         private Boolean checkEndGame()
         {
