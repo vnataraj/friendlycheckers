@@ -57,7 +57,8 @@ namespace FriendlyCheckers
             netLogic = new NetworkLogic();
             dataDude = new DataHandler();
             ResetCredsPanel();
-            netLogic.getSaveData(dataDude.getUserName());
+            if(netLogic.getInternetState())
+                netLogic.getSaveData(dataDude.getUserName());
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -295,7 +296,8 @@ namespace FriendlyCheckers
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             if (InLocalGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
-            netLogic.getSaveData(dataDude.getUserName());
+            if (netLogic.getInternetState())
+                netLogic.getSaveData(dataDude.getUserName());
             RemoveInGameStats();
             clearCredStats();
             if (MenuState())
@@ -535,7 +537,7 @@ namespace FriendlyCheckers
         }
         public static void MakeMove(int boardX, int boardY)
         {
-            if (wait_for_timer || wait_for_computer) return;
+            if (wait_for_timer || wait_for_computer || !canMove()) return;
             if (game_state == GameState.OUT_OF_GAME || game_state == GameState.END_GAME||(checkerX == -1 && checkerY == -1)) return;
             Move m;
             try
@@ -557,6 +559,11 @@ namespace FriendlyCheckers
             catch (InvalidMoveException) { }
             catch (GameLogicException) { }
             checkerX = checkerY = -1;
+        }
+        private static bool canMove()
+        {
+            return  !(game_state == GameState.END_GAME || (game_state == GameState.ONLINE_MULTI &&
+                !logic.whoseMove().Equals(dataDude.getCurrentSaveData().getPlayerColor())));
         }
         private Boolean checkEndGame()
         {
@@ -587,7 +594,7 @@ namespace FriendlyCheckers
         }
         private void Make_Educated_Move(object sender, EventArgs e)
         {
-            if (game_state == GameState.END_GAME || (wait_for_computer && sender.Equals(Make_A_Move))) return;
+            if (!canMove() || (wait_for_computer && sender.Equals(Make_A_Move))) return;
             if(sender.Equals(Make_A_Move))used_make_move = true;
             PieceColor whoseMove = logic.whoseMove();
             MoveAttempt a;
@@ -647,7 +654,8 @@ namespace FriendlyCheckers
                 else
                     wait_for_computer = false;
             }
-            postGameStateToServer();
+            if(game_state == GameState.ONLINE_MULTI)
+                postGameStateToServer();
         }
         private void Computer_Delay_Tick(object o, EventArgs e)
         {
@@ -696,7 +704,7 @@ namespace FriendlyCheckers
         }
         public static void handleHighlighting(int x, int y)
         {
-            if (wait_for_timer || wait_for_computer || game_state==GameState.END_GAME) return;
+            if (wait_for_timer || wait_for_computer || game_state==GameState.END_GAME || !canMove()) return;
             if (!logic.isSelectable(y,x))return;
 
             Checker HIGHLIGHTED_PIECE = pieces[x, y];
