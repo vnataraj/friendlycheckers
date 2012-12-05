@@ -10,7 +10,7 @@ public class NetworkConnection
 	//create a client-side network connection to an existing
 	//host (ip address or machine name) running on a particular
 	//port
-	public NetworkConnection(String host, int port)
+	public NetworkConnection(String host, int port) throws java.net.SocketException
 	{
 		this(createSocket(host, port));
 	}
@@ -32,9 +32,10 @@ public class NetworkConnection
 	}
 
 	//IGNORE.  INTERNAL USE ONLY.
-	public NetworkConnection(Socket socket)
+	public NetworkConnection(Socket socket) throws java.net.SocketException
 	{
 		this.socket = socket;
+		this.socket.setSoTimeout(1000);
 		try
 		{
 			out = new PrintWriter(socket.getOutputStream(), true);
@@ -54,7 +55,7 @@ public class NetworkConnection
 
 	//wait for the other party to send a string.
 	//returns that string
-	public String readLine()
+	public String readLine() throws java.net.SocketTimeoutException
 	{
 		try
 		{

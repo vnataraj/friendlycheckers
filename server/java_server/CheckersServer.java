@@ -59,6 +59,9 @@ public class CheckersServer {
 			}
 			*/
 		}
+		catch(RuntimeException ste) {
+			System.out.println("Timeout");
+		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
