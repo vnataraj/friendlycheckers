@@ -511,7 +511,8 @@ namespace FriendlyCheckers
             }
             if (logic.whoseMove().Equals(PieceColor.RED))
             {
-                rotateBoard180();
+                if(!rotated)
+                    rotateBoard180();
                 WhoseTurn.Text = "Red to move next.";
             }
             else
