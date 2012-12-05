@@ -56,9 +56,6 @@ namespace FriendlyCheckers
             checkerX = checkerY = -1;
 
             netLogic = new NetworkLogic();
-
-            System.Diagnostics.Debug.WriteLine("bool netlogic is"+netLogic.checkUser("vipul"));
-            netLogic.checkUser("joe");
             dataDude = new DataHandler();
             ResetCredsPanel();
 
@@ -476,10 +473,17 @@ namespace FriendlyCheckers
                 ChangeUser.IsEnabled = true;
 
                 LoginSuccess(true);
-                CredPanel.Children.Add(ChangeUser);
-                CredPanel.Children.Add(NewUser);
             }
             else
+            {
+                UserName.IsEnabled = true;
+                Password.IsEnabled = true;
+                Login.IsEnabled = true;
+                ChangeUser.IsEnabled = true;
+            }
+            CredPanel.Children.Add(ChangeUser);
+            CredPanel.Children.Add(NewUser);
+            /*else
             {
                 CheckAvailability.IsEnabled = true;
                 UserName.IsEnabled = true;
@@ -489,7 +493,7 @@ namespace FriendlyCheckers
                 ChangeUser.IsEnabled = false;
                 CredPanel.Children.Add(CheckAvailability);
                 CredPanel.Children.Add(AvailableRect);
-            }
+            }*/
         }
         private void postGameStateToServer()
         {
