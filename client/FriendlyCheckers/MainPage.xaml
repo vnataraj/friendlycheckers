@@ -50,9 +50,7 @@
         </Grid>
         <Grid Name ="SaveGamePanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <Button Name="NewGame" Click="NewGame_Setup" Height="75" Width ="250" FontSize="25" Margin="-230,478,0,16">Find Random</Button>
-            <Button Name="EnterGame" Click="EnterGame_Click" Height="75" Width ="250" FontSize="25" Margin="-230,378,0,16">Enter Game</Button>
             <Button Name="FindPlayer" Click="Find_Player_Setup" Height="75" Width ="250" FontSize="25" Margin="230,478,0,16">Find Player</Button>
-            <Button Name="Refresh" Click="Refresh_Data" Height="75" Width ="250" FontSize="25" Margin="230,378,0,16">Refresh</Button>
         </Grid>
         <StackPanel Name ="OptionsPanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <TextBlock x:Name="GameOptions" Text="Gameplay:" FontSize="28" Margin ="-10,20,10,0" Style="{StaticResource PhoneTextNormalStyle}" Height="40" HorizontalAlignment="Right" Width="454" />
