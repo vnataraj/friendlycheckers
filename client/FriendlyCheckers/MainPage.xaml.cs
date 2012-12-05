@@ -689,7 +689,7 @@ namespace FriendlyCheckers
                 // if black is making the jump
                 if (!last.Equals(PieceColor.RED) || (game_state != GameState.SINGLE_PLAYER))
                 {
-                    if (used_make_move)
+                    if (used_make_move || game_state == GameState.ONLINE_MULTI)
                         Make_Educated_Move(o, e);
                     else if (!FORCE_JUMP && MessageBox.Show("Double Jump Available!", "Take the double jump?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)
                         logic.skipMultiJump();
