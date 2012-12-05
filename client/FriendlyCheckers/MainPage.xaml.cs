@@ -75,7 +75,6 @@ namespace FriendlyCheckers
             TURN_TIMER.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800);  // Timer will tick in 800 milliseconds. This is the wait between moves.
             Op_DiffEasy.IsChecked = true;
-            EnterGame.IsEnabled = false;
 
             RemoveInGameStats();
             mainCanvas = new Canvas();
@@ -251,8 +250,6 @@ namespace FriendlyCheckers
                 MessageBox.Show("You need to turn on data or connect to wifi to use that feature.");
                 return;
             }
-            if(!netLogic.getGetSaveDataState())
-                netLogic.getSaveData(dataDude.getUserName());
             System.Diagnostics.Debug.WriteLine("getSaveDataCalled."); 
             game_state = GameState.SAVE_GAME;
             PageTitle.Text = "Active Games";
@@ -276,18 +273,15 @@ namespace FriendlyCheckers
         }
         private void RefreshSaveDataBoxes()
         {
-            //if (!netLogic.getGetSaveDataState()) return;
-            System.Diagnostics.Debug.WriteLine("RefreshSaveDataBoxes called."); 
+            System.Diagnostics.Debug.WriteLine("RefreshSaveDataBoxes called.");
             saveButtons = new List<SaveDataBox>();
-            List<SaveData> saveData = netLogic.getGetSaveData();
+            List<SaveData> saveData = netLogic.getSaveData(dataDude.getUserName());
             if (saveData == null) return;
             System.Diagnostics.Debug.WriteLine("SaveGamePanel count before: " + SaveGamePanel.Children.Count);
             //Clear old savedata
             for (int k = SaveGamePanel.Children.Count - 1; k >= 0; k--)
                 SaveGamePanel.Children.RemoveAt(k);
             SaveGamePanel.Children.Add(NewGame);
-            SaveGamePanel.Children.Add(EnterGame);
-            SaveGamePanel.Children.Add(Refresh);
             SaveGamePanel.Children.Add(FindPlayer);
             System.Diagnostics.Debug.WriteLine("SaveGamePanel count after: " + SaveGamePanel.Children.Count);
             //
@@ -318,8 +312,6 @@ namespace FriendlyCheckers
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             if (InLocalGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
-            if (game_state == GameState.ONLINE_MULTI && netLogic.getInternetState() && !netLogic.getGetSaveDataState())
-                netLogic.getSaveData(dataDude.getUserName());
             RemoveInGameStats();
             clearCredStats();
             if (MenuState())
@@ -352,7 +344,6 @@ namespace FriendlyCheckers
             game_state = GameState.OUT_OF_GAME;
 
             ///// reset game vars
-            EnterGame.IsEnabled = false;
             wait_for_computer = false;
             wait_for_timer = false;
             rotated = false;
@@ -524,11 +515,10 @@ namespace FriendlyCheckers
                     System.Diagnostics.Debug.WriteLine("A save data box was clicked!");
                     SaveData data = box.getSaveData();
                     netLogic.getGameData(dataDude.getUserName(), data.getMatchID());
-                    EnterGame.IsEnabled = !box.isHighlighted();
-                    HighlightBox(box, true);
+                    LoadSaveGame(box.getSaveData());
+                    Online_Multi_Setup(sender, e);
+                    ContentPanel.Children.Remove(quit);
                 }
-                else
-                    HighlightBox(box, false);
             }
         }
         public void LoadSaveGame(SaveData data)
@@ -675,7 +665,6 @@ namespace FriendlyCheckers
                 rotateBoard180();
             else if (game_state == GameState.SINGLE_PLAYER)
             {
-                //MessageBox.Show("Computer's turn.");
                 wait_for_computer = !wait_for_computer;
                 if (wait_for_computer && logic.whoseMove().Equals(PieceColor.RED))
                     COMPUTER_DELAY.Start();
@@ -684,13 +673,9 @@ namespace FriendlyCheckers
             }
             if (game_state == GameState.ONLINE_MULTI)
             {
-
-               // netLogic.getSaveData(dataDude.getUserName());
                 System.Diagnostics.Debug.WriteLine("Check one!");
                 postGameStateToServer();
                 System.Diagnostics.Debug.WriteLine("Check two!");
-                if (!netLogic.getGetSaveDataState())
-                    netLogic.getSaveData(dataDude.getUserName());
             }
         }
         private void Computer_Delay_Tick(object o, EventArgs e)
@@ -800,21 +785,13 @@ namespace FriendlyCheckers
             if (success)
             {
                 dataDude.setCreds(UserName.Text, Password.Password);
-                if (!netLogic.getGetSaveDataState())
-                    netLogic.getSaveData(dataDude.getUserName());
                 ResetCredsPanel();
             }
             else
-            {
                 dataDude.setCreds("", "");
-            }
         }
         private void FocusLost(object sender, EventArgs e)
         {
-            netLogic.checkUser(UserName.Text);
-            netLogic.login(UserName.Text, Password.Password);
-            if(Login.Content.Equals("Create Account"))
-                netLogic.createUser(UserName.Text, Password.Password);
             CheckAvailability.IsEnabled = true;
             AvailableRect.IsEnabled = true;
         }
@@ -853,39 +830,8 @@ namespace FriendlyCheckers
             LoginConfirm.Content = AvailableRect.Content = "";
             AvailableRect.Foreground = AvailableRect.BorderBrush = new SolidColorBrush(Colors.White);
         }
-        private void EnterGame_Click(object o, RoutedEventArgs e)
-        {
-            foreach (SaveDataBox box in saveButtons)
-            {
-                if (!box.isHighlighted()) continue;
-                LoadSaveGame(box.getSaveData());
-                Online_Multi_Setup(o, e);
-                ContentPanel.Children.Remove(quit);
-                HighlightBox(box, false);
-                break;
-            }
-            game_state = GameState.ONLINE_MULTI;
-        }
         private void Find_Player_Setup(object o, RoutedEventArgs e)
         {
-        }
-        private void Refresh_Data(object o, RoutedEventArgs e)
-        {
-            //Menu_Setup(o, e);
-            //SaveGame_Setup(o, e);
-            RefreshSaveDataBoxes();
-        }
-        private void HighlightBox(SaveDataBox box, bool b)
-        {
-            if (box.isHighlighted())
-                box.Highlight(b=false);
-            else
-                box.Highlight(b);
-            if (!box.getButton().IsEnabled) return;
-
-            Color color = b ? Valid : Colors.White;
-            box.getButton().BorderBrush = new SolidColorBrush(color);
-            box.getButton().Foreground = new SolidColorBrush(color);
         }
     }
     public class SaveDataBox
