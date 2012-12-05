@@ -9,6 +9,7 @@ namespace FriendlyCheckers
     public class DataHandler
 	{
         private String data_file_name;
+        private SaveData current_save;
         private String username;
         private String password;
 
@@ -57,6 +58,8 @@ namespace FriendlyCheckers
                 username = password = "";
             }
         }
+        public void setSaveData(SaveData sd) { this.current_save = sd; }
+        public SaveData getCurrentSaveData() { return current_save; }
         public String getUserName() { return username; }
         public String getPassword() { return password; }
         public void setCreds(String username, String password)
@@ -99,6 +102,13 @@ namespace FriendlyCheckers
         }
         public static GameData fromString(String ma) {
             PieceColor whoseM;
+            List<MoveAttempt> lala =new List<MoveAttempt>();
+            if (ma.Equals(""))
+            {
+                whoseM = PieceColor.BLACK;
+                return new GameData(lala, whoseM);
+            }
+
             if (ma[0] == 'B') {
                 whoseM = PieceColor.BLACK;
             } else if (ma[0] == 'R') {
@@ -109,7 +119,6 @@ namespace FriendlyCheckers
             String mas = ma.Substring(1); 
             String []moves = mas.Split(new String[] {"|"}, StringSplitOptions.None); 
             moves[moves.Length -1] = null; 
-            List<MoveAttempt> lala = new List<MoveAttempt>();
             foreach (String move in moves) {
                 if (move == null) {
                     break;

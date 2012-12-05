@@ -72,6 +72,7 @@ namespace FriendlyCheckers
             TURN_TIMER.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 800);  // Timer will tick in 800 milliseconds. This is the wait between moves.
             Op_DiffEasy.IsChecked = true;
+            EnterGame.IsEnabled = false;
 
             RemoveInGameStats();
             mainCanvas = new Canvas();
@@ -165,7 +166,7 @@ namespace FriendlyCheckers
         {
             ContentPanel.Children.Remove(singleplayer);
             ContentPanel.Children.Remove(multiplayer_local);
-            //ContentPanel.Children.Remove(multiplayer_online);
+            ContentPanel.Children.Remove(multiplayer_online);
             ContentPanel.Children.Remove(options);
             ContentPanel.Children.Remove(about);
         }
@@ -229,12 +230,12 @@ namespace FriendlyCheckers
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0);
             ClearMenu();
             LayoutRoot.Children.Remove(TitlePanel);
-            Versus.Text = "Player 1 vs. [Searching...]";
+           // Versus.Text = "Player 1 vs. [Searching...]";
             AddInGameStats();
             ContentPanel.Children.Remove(Make_A_Move);
-            resetBoard();
-            ContentPanel.Children.Add(Shader);
-            ContentPanel.Children.Add(Search);
+            //resetBoard();
+            //ContentPanel.Children.Add(Shader);
+            //ContentPanel.Children.Add(Search);
         }
         private void SaveGame_Setup(object sender, RoutedEventArgs e)
         {
@@ -264,6 +265,7 @@ namespace FriendlyCheckers
                 for(int k=SaveGamePanel.Children.Count-1; k>=0; k--)
                     SaveGamePanel.Children.RemoveAt(k);
                 SaveGamePanel.Children.Add(NewGame);
+                SaveGamePanel.Children.Add(EnterGame);
                 //
 
                 int ind = 0;
@@ -308,6 +310,7 @@ namespace FriendlyCheckers
             else
                 LayoutRoot.Children.Add(TitlePanel);
             PageTitle.Text = "Checkers";
+            Versus.Text = "Player 1 vs. Player 2";
 
             ///// restore Login stuff
             ResetCredsPanel();
@@ -316,7 +319,7 @@ namespace FriendlyCheckers
             ///// restore main menu
             ContentPanel.Children.Add(singleplayer);
             ContentPanel.Children.Add(multiplayer_local);
-           // ContentPanel.Children.Add(multiplayer_online);
+            ContentPanel.Children.Add(multiplayer_online);
             ContentPanel.Children.Add(options);
             ContentPanel.Children.Add(about);
             /////
@@ -324,6 +327,7 @@ namespace FriendlyCheckers
             game_state = GameState.OUT_OF_GAME;
 
             ///// reset game vars
+            EnterGame.IsEnabled = false;
             wait_for_computer = false;
             wait_for_timer = false;
             rotated = false;
@@ -397,6 +401,7 @@ namespace FriendlyCheckers
             createPieces(); //makes new GameLogic instance
             Moves.Text = "Moves: 0";
             WhoseTurn.Text = "Black to move next.";
+            rotated = false;
         }
         private static void rotateBoard180()
         {
@@ -470,25 +475,58 @@ namespace FriendlyCheckers
                 CredPanel.Children.Add(AvailableRect);
             }
         }
+        private void postGameStateToServer()
+        {
+            SaveData sd = dataDude.getCurrentSaveData();
+            GameData gd = new GameData(logic.getMoveAttemptsMade(), logic.whoseMove());
+            netLogic.writeToServer(dataDude.getUserName(), sd, gd);
+        }
         
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
-        private void SaveDataBoxClick(object sender, EventArgs e)
+        private void SaveDataBoxClick(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("SaveDataBoxClick("+sender.ToString()+","+ e.ToString()+")");
             foreach (SaveDataBox box in saveButtons)
             {
-                if (sender.Equals(box))
+                if (box.getButton().Equals(sender))
                 {
-                    LoadSaveGame(box.getSaveData());
-                    break;
+                    System.Diagnostics.Debug.WriteLine("A save data box was clicked!");
+                    SaveData data = box.getSaveData();
+                    netLogic.getGameData(dataDude.getUserName(), data.getMatchID());
+                    EnterGame.IsEnabled = !box.isHighlighted();
+                    HighlightBox(box, true);
                 }
+                else
+                    HighlightBox(box, false);
             }
         }
         public void LoadSaveGame(SaveData data)
         {
-            //netLogic.getGameData(dataDude.getUserName(), data.getMatchID());
-            //GameData gameData = netLogic.getGameData();
+            System.Diagnostics.Debug.WriteLine("LoadSaveGame(" + data.ToString() + ")------------------");
+            GameData gameData = netLogic.getGameDataReal();
+            System.Diagnostics.Debug.WriteLine("Is there game data? " + (gameData != null));
+
+            if (gameData == null) return;
+            dataDude.setSaveData(data);
+            resetBoard();
+
+            System.Diagnostics.Debug.WriteLine("Whose turn is it in GameLogic? " + logic.whoseMove());
+            System.Diagnostics.Debug.WriteLine("Whose turn is it in GameData? " + gameData.getWhoseMove());
+            System.Diagnostics.Debug.WriteLine("How many moves? " + data.getNumMoves());
+            foreach (MoveAttempt move in gameData.getMoves())
+            {
+                Move m = logic.makeMove(move);
+                handleMove(m);
+                //rotateBoard180();
+            }
+
+            Versus.Text = dataDude.getUserName() + " vs. " + data.getOpponent();
+            Moves.Text = "Moves: " + data.getNumMoves();
+            if(data.getWhoseTurn().Equals(PieceColor.RED))
+                rotateBoard180();
+            System.Diagnostics.Debug.WriteLine("-----------------------------------------");
         }
         public static void MakeMove(int boardX, int boardY)
         {
@@ -604,6 +642,7 @@ namespace FriendlyCheckers
                 else
                     wait_for_computer = false;
             }
+            postGameStateToServer();
         }
         private void Computer_Delay_Tick(object o, EventArgs e)
         {
@@ -763,30 +802,39 @@ namespace FriendlyCheckers
             LoginConfirm.Content = AvailableRect.Content = "";
             AvailableRect.Foreground = AvailableRect.BorderBrush = new SolidColorBrush(Colors.White);
         }
-        private void Debug(object o, EventArgs e)
+        private void EnterGame_Click(object o, RoutedEventArgs e)
         {
-            netLogic.checkUser("vipul");
-            Boolean b=netLogic.getCheckUserState();
-            System.Diagnostics.Debug.WriteLine("username is " + b+":0");
-            //netLogic.getSaveData("vipul");
-            List<SaveData> sd = netLogic.getGetSaveData();
-            List<MoveAttempt> ma = new List<MoveAttempt>();
-            ma.Add(logic.getAnyDoableMoveAttempt());
-            GameData gd = new GameData(ma, sd[0].getWhoseTurn());
+            foreach (SaveDataBox box in saveButtons)
+            {
+                if (!box.isHighlighted()) continue;
+                LoadSaveGame(box.getSaveData());
+                Online_Multi_Setup(o, e);
+                HighlightBox(box, false);
+                break;
+            }
+        }
+        private void HighlightBox(SaveDataBox box, bool b)
+        {
+            if (box.isHighlighted())
+                box.Highlight(b=false);
+            else
+                box.Highlight(b);
+            if (!box.getButton().IsEnabled) return;
 
-            netLogic.writeToServer("vipul", sd[0], gd);
-            netLogic.getGameData("vipul", sd[0].getMatchID());
-            netLogic.getGetGameDataState();
-
+            Color color = b ? Valid : Colors.White;
+            box.getButton().BorderBrush = new SolidColorBrush(color);
+            box.getButton().Foreground = new SolidColorBrush(color);
         }
     }
     public class SaveDataBox
     {
         private SaveData data;
         private Button button;
+        private bool highlighted;
         public SaveDataBox(int index, SaveData data) 
         { 
             this.data = data;
+            this.highlighted = false;
             button = new Button();
             button.Content = "Moves: "+data.getNumMoves()+"          "+data.getOpponent()+"          ";
             button.HorizontalContentAlignment = HorizontalAlignment.Right;
@@ -795,6 +843,8 @@ namespace FriendlyCheckers
             button.Width = 450;
             button.Margin = new Thickness(0, -500 + 120 * index, 0, 0);
         }
+        public void Highlight(bool b){ highlighted = b; }
+        public bool isHighlighted() { return highlighted; }
         public Button getButton() { return button; }
         public SaveData getSaveData() { return data; }
         public void setEnabled(bool b){ button.IsEnabled = b; }

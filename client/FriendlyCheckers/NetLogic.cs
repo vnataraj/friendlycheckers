@@ -287,6 +287,9 @@ namespace FriendlyCheckers{
             string[] lines = responseFromServer.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             string a = HttpUtility.UrlDecode(lines[1]);
             gameData = GameData.fromString(a);
+            if (gameData == null)
+                gameData = new GameData(new List<MoveAttempt>(), PieceColor.BLACK);
+            System.Diagnostics.Debug.WriteLine("Lines[1] = " + lines[1] + " a=" + a + " gameData=NULL? " + (gameData == null));
             this.getGameDataState = true;
             return;
         }
@@ -341,8 +344,7 @@ namespace FriendlyCheckers{
             System.Diagnostics.Debug.WriteLine("entered writeToServer");
             string str = gameData.ToString();
             serverpath = server + "?message=RecordMove&" + "Username=" + username +
-                "&MatchID=" + saveData.getMatchID().ToString() + "&MoveNumber=" +
-                saveData.getNumMoves().ToString() + "&Notation=" + encodeGameData(gameData.toString()); // parse move!!!
+                "&MatchID=" + saveData.getMatchID().ToString() + "&Notation=" + encodeGameData(gameData.toString()); // parse move!!!
             try
             {
                 sendHttpRequest(serverpath);
@@ -515,7 +517,12 @@ namespace FriendlyCheckers{
             return saveData;
         }
         public GameData getGameDataReal()
-        { 
+        {
+            if (getGameDataState)
+            {
+                this.getGameDataState = false;
+                return gameData;
+            }
             return gameData;
         }
     }
