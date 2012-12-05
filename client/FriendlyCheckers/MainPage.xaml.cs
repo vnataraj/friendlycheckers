@@ -52,6 +52,7 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(AboutPanel);
             LayoutRoot.Children.Remove(CredPanel);
             LayoutRoot.Children.Remove(SaveGamePanel);
+            ContentPanel.Children.Remove(back_to_saves);
             checkerX = checkerY = -1;
 
             netLogic = new NetworkLogic();
@@ -208,6 +209,7 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(TitlePanel);
             Versus.Text = "Player 1 vs. Player 2";
             AddInGameStats();
+            LayoutRoot.Children.Add(TitlePanel);
             ContentPanel.Children.Remove(Make_A_Move);
             resetBoard();
         }
@@ -225,6 +227,7 @@ namespace FriendlyCheckers
             {
                 LayoutRoot.Children.Remove(SaveGamePanel);
                 ContentPanel.Children.Remove(quit);
+                ContentPanel.Children.Add(back_to_saves);
                 ContentPanel.Children.Add(mainCanvas);
             }
             game_state = GameState.ONLINE_MULTI;
@@ -233,6 +236,7 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(TitlePanel);
            // Versus.Text = "Player 1 vs. [Searching...]";
             AddInGameStats();
+            ContentPanel.Children.Remove(quit);
             ContentPanel.Children.Remove(Make_A_Move);
             //resetBoard();
             //ContentPanel.Children.Add(Shader);
@@ -247,8 +251,12 @@ namespace FriendlyCheckers
             }
             game_state = GameState.SAVE_GAME;
             PageTitle.Text = "Active Games";
+            RemoveInGameStats();
             ClearMenu();
+            if(!LayoutRoot.Children.Contains(TitlePanel))
+                LayoutRoot.Children.Add(TitlePanel);
             ContentPanel.Children.Remove(mainCanvas);
+            ContentPanel.Children.Remove(back_to_saves);
             ContentPanel.Children.Add(quit);
             if (!dataDude.hasCreds())
             {
@@ -296,7 +304,7 @@ namespace FriendlyCheckers
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             if (InLocalGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
-            if (netLogic.getInternetState())
+            if (game_state == GameState.ONLINE_MULTI && netLogic.getInternetState())
                 netLogic.getSaveData(dataDude.getUserName());
             RemoveInGameStats();
             clearCredStats();
@@ -316,6 +324,7 @@ namespace FriendlyCheckers
 
             ///// restore Login stuff
             ResetCredsPanel();
+            ContentPanel.Children.Remove(back_to_saves);
             /////
 
             ///// restore main menu
@@ -825,6 +834,7 @@ namespace FriendlyCheckers
                 if (!box.isHighlighted()) continue;
                 LoadSaveGame(box.getSaveData());
                 Online_Multi_Setup(o, e);
+                ContentPanel.Children.Remove(quit);
                 HighlightBox(box, false);
                 break;
             }

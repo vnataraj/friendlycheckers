@@ -38,6 +38,7 @@
         <Grid x:Name="ContentPanel" Margin="12,109,12,0" Grid.RowSpan="2">
             <TextBlock x:Name="WhoseTurn" Text="Black to move next." FontSize="32" Style="{StaticResource PhoneTextNormalStyle}" Height="56" Margin="50,436,30,97" HorizontalAlignment="Right" Width="325" />
             <Button Name="quit"  Click="Menu_Setup" Margin="-12,556,-12,6" Height="70">Quit to Menu</Button>
+            <Button Name="back_to_saves"  Click="SaveGame_Setup" Margin="-12,556,-12,6" Height="70">Back to Games</Button>
             <Button Name="Make_A_Move"  Click="Make_Educated_Move" Margin="-12,446,-12,6" Height="70">Make Next Move</Button>
             <Button Name="singleplayer"  Click="SinglePlayer_Setup" Margin="-12,444,92,113" Height="70">Singleplayer</Button>
             <Button Name="multiplayer_local" Click="Local_Multi_Setup" Margin="-12,500,92,59" Height="70">Multiplayer Local</Button>
