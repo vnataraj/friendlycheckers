@@ -479,9 +479,12 @@ namespace FriendlyCheckers
         }
         private void postGameStateToServer()
         {
-            SaveData sd = dataDude.getCurrentSaveData();
+            SaveData old = dataDude.getCurrentSaveData();
+            SaveData sd = new SaveData(old.getMatchID(), old.getOpponent(), logic.getMoveNumber(), old.getPlayerColor(), logic.whoseMove());
             GameData gd = new GameData(logic.getMoveAttemptsMade(), logic.whoseMove());
             netLogic.writeToServer(dataDude.getUserName(), sd, gd);
+
+            dataDude.setSaveData(sd);
         }
         
         //////////
@@ -563,7 +566,7 @@ namespace FriendlyCheckers
         private static bool canMove()
         {
             return  !(game_state == GameState.END_GAME || (game_state == GameState.ONLINE_MULTI &&
-                !logic.whoseMove().Equals(dataDude.getCurrentSaveData().getPlayerColor())));
+                !dataDude.getCurrentSaveData().getWhoseTurn().Equals(dataDude.getCurrentSaveData().getPlayerColor())));
         }
         private Boolean checkEndGame()
         {
