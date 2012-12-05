@@ -508,15 +508,14 @@ namespace FriendlyCheckers
             int turn = logic.getMoveNumber();
 
             List<MoveAttempt> moves = dat.getMoves();
-            for (int k = turn; k < moves.Count-1; k++ )
+            System.Diagnostics.Debug.WriteLine("~~~~~TURN: " + turn + " COUNT: " + moves.Count);
+            for (int k = turn; k < moves.Count; k++ )
             {
                 MoveAttempt move = moves[k];
                 Move m = logic.makeMove(move);
                 handleMove(m);
             }
 
-            TURN_TIMER.Start();
-            wait_for_timer = true;
         }
         private void Refresh(object o, RoutedEventArgs e)
         {
