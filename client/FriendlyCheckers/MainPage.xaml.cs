@@ -206,7 +206,6 @@ namespace FriendlyCheckers
             LayoutRoot.Children.Remove(TitlePanel);
             Versus.Text = "Player 1 vs. Player 2";
             AddInGameStats();
-            LayoutRoot.Children.Add(TitlePanel);
             ContentPanel.Children.Remove(Make_A_Move);
             resetBoard();
         }
@@ -509,6 +508,20 @@ namespace FriendlyCheckers
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
+        private void FindRandomUser(object o, RoutedEventArgs e)
+        {
+            Versus.Text = "Player 1 vs. [Searching...]";
+            resetBoard();
+            ContentPanel.Children.Add(Shader);
+            ContentPanel.Children.Add(Search);
+            //netLogic.queueMatch(dataDude.getUserName());
+            Online_Multi_Setup(o, e);
+        }
+        private void Find_Player_Setup(object o, RoutedEventArgs e)
+        {
+
+
+        }
         private void SaveDataBoxClick(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine("SaveDataBoxClick("+sender.ToString()+","+ e.ToString()+")");
@@ -829,9 +842,6 @@ namespace FriendlyCheckers
             LoginConfirm.Foreground = LoginConfirm.BorderBrush = new SolidColorBrush(Colors.White);
             LoginConfirm.Content = AvailableRect.Content = "";
             AvailableRect.Foreground = AvailableRect.BorderBrush = new SolidColorBrush(Colors.White);
-        }
-        private void Find_Player_Setup(object o, RoutedEventArgs e)
-        {
         }
     }
     public class SaveDataBox
