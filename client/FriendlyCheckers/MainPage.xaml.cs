@@ -808,6 +808,8 @@ namespace FriendlyCheckers
         private void Process_Username(object sender, EventArgs e)
         {
             Boolean valid = !netLogic.checkUser(UserName.Text);
+            if (UserName.Text.Equals("")) 
+                valid = false;
             CheckUserValidity(valid);
         }
         private void Login_Confirm(object sender, EventArgs e)
@@ -844,7 +846,6 @@ namespace FriendlyCheckers
         private void Create_User(object o, EventArgs e)
         {
             UserName.Text = Password.Password = "";
-            netLogic.createUser(UserName.Text, Password.Password);
             Login.Content = "Create Account";
             UserName.IsEnabled = true;
             Password.IsEnabled = true;
