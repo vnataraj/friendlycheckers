@@ -69,6 +69,7 @@ namespace FriendlyCheckers{
         private static string checkUserExistsSuccess = "42.10";
         private static string getGameDataSuccess = "42.12";
         private static string createUserSuccess = "42.13";
+        private static string recordWinnerSuccess = "42.14";
         private static string loginFailure = "666.1";
         private static string queueMatchFailure = "666.2";
         private static string requestMatchFailure = "666.3";
@@ -80,6 +81,7 @@ namespace FriendlyCheckers{
         private static string checkUserFailure = "666.10";
         private static string getGameDataFailure = "666.12";
         private static string createUserFailure = "666.13";
+        private static string recordWinnerFailure = "666.14";
         private static string unknownError = "666.666";
 
         private bool getLoginState;
@@ -95,6 +97,7 @@ namespace FriendlyCheckers{
         private bool getAcceptMatchState;
         private bool createUserState;
         private bool internetState;
+        private bool isWinnerRecorded;
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.internetState = false;
             if (NetworkInterface.GetIsNetworkAvailable())
@@ -113,6 +116,7 @@ namespace FriendlyCheckers{
             this.getSaveDataState = false;
             this.getAcceptMatchState = false;
             this.createUserState = false;
+            this.isWinnerRecorded = false;
             saveData = new List<SaveData>();
            // this.opponentname= game.getOpponentName();
             // do startup stuff
@@ -144,6 +148,11 @@ namespace FriendlyCheckers{
                 this.getQueueState = true;
                 return;
             } 
+            else if(responseFromServer.Contains(recordWinnerSuccess))
+            {
+                this.isWinnerRecorded=true;
+                return;
+            }
             else if (responseFromServer.Contains(createUserSuccess))
             {
                 this.createUserState=true;
@@ -195,6 +204,11 @@ namespace FriendlyCheckers{
             {
                 System.Diagnostics.Debug.WriteLine("bbbbb");
                 this.getLoginState = true;
+                return;
+            }
+            else if(responseFromServer.Contains(recordWinnerFailure))
+            {
+                this.isWinnerRecorded=false;
                 return;
             }
             else if (responseFromServer.Contains(checkUserFailure))
@@ -249,7 +263,7 @@ namespace FriendlyCheckers{
             }
             return;
         }
-        private void socketHandler(string serverpath)
+        private void socketHandler(string serverpath) // Used TcpClient from https://github.com/mikoskinen/socketex, check it out!!
         {
             var connection = new TcpClient(server, port);
             var stream = connection.GetStream();
@@ -322,6 +336,24 @@ namespace FriendlyCheckers{
             }
             return false;
         }
+        public bool sendWinner(string winner, int matchID)
+        {
+            serverpath = "?message=RecordWinner&MatchID="+ matchID.ToString() + "WinnerUsername=" + username;
+            try
+            {
+                this.socketHandler(serverpath);
+            }
+            catch (WebException we)
+            {
+                System.Diagnostics.Debug.WriteLine("Caught exception : " + we.ToString());
+                throw new GetSaveDataException();
+            }
+            if (this.isWinnerRecorded)
+            {
+                return true;
+            }
+            return false;
+        }
         public List<SaveData> getSaveData(string username)
         {
             System.Diagnostics.Debug.WriteLine("getSaveData called!!!!!-------------"); 
@@ -329,7 +361,7 @@ namespace FriendlyCheckers{
             try
             {
                 this.socketHandler(serverpath);
-            }
+            } 
             catch (WebException we)
             {
                 System.Diagnostics.Debug.WriteLine("Caught exception : " + we.ToString());
@@ -431,9 +463,9 @@ namespace FriendlyCheckers{
             }
             return false;
         }
-        public void queueMatch(string username, int gameID)
+        public bool queueMatch(string username)
         {
-            string serverpath = "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
+            string serverpath = "?message=QueueMatch&" + "Username=" + username;
             try
             {
                 this.socketHandler(serverpath);
@@ -444,7 +476,9 @@ namespace FriendlyCheckers{
                 QueueMatchException qe = new QueueMatchException();
                 throw qe;
             }
-            return;
+            if (this.getQueueState)
+                return true;
+            return false;
         }
 
         public void requestMatch(string username, int gameID, string opponentName)
