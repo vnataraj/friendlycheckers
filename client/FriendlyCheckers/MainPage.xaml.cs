@@ -524,7 +524,7 @@ namespace FriendlyCheckers
         public void LoadSaveGame(SaveData data)
         {
             System.Diagnostics.Debug.WriteLine("LoadSaveGame(" + data.ToString() + ")------------------");
-            GameData gameData = netLogic.getGameDataReal();
+            GameData gameData = netLogic.getGameData(dataDude.getUserName(), data.getMatchID());
             System.Diagnostics.Debug.WriteLine("Is there game data? " + (gameData != null));
 
             if (gameData == null) return;
@@ -763,21 +763,17 @@ namespace FriendlyCheckers
         }
         private void Process_Username(object sender, EventArgs e)
         {
-            netLogic.checkUser(UserName.Text);
-            Boolean valid = !netLogic.getCheckUserState();
-            if (UserName.Text.Equals(""))
-                valid = false;
+            Boolean valid = !netLogic.checkUser(UserName.Text);
             CheckUserValidity(valid);
         }
         private void Login_Confirm(object sender, EventArgs e)
         {
-            bool create = Login.Content.Equals("Create Account");
+            bool create = Login.Content.Equals("Create Account"), success;
             if (create)
-                netLogic.createUser(UserName.Text, Password.Password);
+               success = netLogic.createUser(UserName.Text, Password.Password);
             else
-                netLogic.login(UserName.Text, Password.Password);
+               success = netLogic.login(UserName.Text, Password.Password);
 
-            Boolean success = create ? !netLogic.getCreateUserState(): netLogic.getGetLoginState();
             if (UserName.Text.Equals("") || Password.Password.Equals("")) 
                 success = false;
             LoginSuccess(success);
