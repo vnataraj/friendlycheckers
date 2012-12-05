@@ -35,6 +35,7 @@ namespace FriendlyCheckers
         private static NetworkLogic netLogic;
         private static BoardSpace[,] spaces;
         private static Checker[,] pieces;
+        private SaveDataBox MatchMaking;
         private List<SaveDataBox> saveButtons;
 
         private static Boolean rotated = false;
@@ -61,7 +62,7 @@ namespace FriendlyCheckers
 
             COMPUTER_DELAY = new DispatcherTimer();
             COMPUTER_DELAY.Tick += Computer_Delay_Tick;
-            COMPUTER_DELAY.Interval = new TimeSpan(0, 0, 0, 0, 400);
+            COMPUTER_DELAY.Interval = new TimeSpan(0, 0, 0, 0, 400);           
 
             TURN_TIMER = new DispatcherTimer();
             TURN_TIMER.Tick += timerTick;              // Everytime timer ticks, timer_Tick will be called
@@ -268,7 +269,7 @@ namespace FriendlyCheckers
             for (int k = SaveGamePanel.Children.Count - 1; k >= 0; k--)
                 SaveGamePanel.Children.RemoveAt(k);
             SaveGamePanel.Children.Add(NewGame);
-            SaveGamePanel.Children.Add(FindPlayer);
+            SaveGamePanel.Children.Add(RefreshButton);
             System.Diagnostics.Debug.WriteLine("SaveGamePanel count after: " + SaveGamePanel.Children.Count);
             //
 
@@ -498,16 +499,30 @@ namespace FriendlyCheckers
         //////////
         //// HANDLERS FOR BOARD, PIECES, LOGIC AND HIGHLIGHTING LOCATED BELOW HERE
         //////////
+        private void Refresh(object o, RoutedEventArgs e)
+        {
+            bool hasMatchMaking = MatchMaking == null ? false : SaveGamePanel.Children.Contains(MatchMaking.getButton());
+            int thenGames = SaveGamePanel.Children.Count - 2;
+            RefreshSaveDataBoxes();
+            int nowGames = SaveGamePanel.Children.Count - 2;
+            System.Diagnostics.Debug.WriteLine("GAMES: "+thenGames+", "+nowGames);
+            if (thenGames > nowGames)
+                addMatchmakingBox();
+        }
+        private void addMatchmakingBox()
+        {
+            SaveData dat = new SaveData(1, "Matchmaking...", 0, PieceColor.BLACK, PieceColor.BLACK, PieceColor.NONE);
+            MatchMaking = new SaveDataBox(SaveGamePanel.Children.Count - 2, dat);
+            MatchMaking.getButton().IsEnabled = false;
+            SaveGamePanel.Children.Add(MatchMaking.getButton());
+            NewGame.IsEnabled = false;
+        }
         private void FindRandomUser(object o, RoutedEventArgs e)
         {
             Versus.Text = "Player 1 vs. [Searching...]";
             resetBoard();
             netLogic.queueMatch(dataDude.getUserName());
-            SaveData dat = new SaveData(1, "Matchmaking...", 0, PieceColor.BLACK, PieceColor.BLACK, PieceColor.NONE);
-            SaveDataBox box = new SaveDataBox(SaveGamePanel.Children.Count - 2, dat);
-            box.getButton().IsEnabled = false;
-            SaveGamePanel.Children.Add(box.getButton());
-            NewGame.IsEnabled = false;
+            addMatchmakingBox();
         }
         private void Find_Player_Setup(object o, RoutedEventArgs e)
         {
