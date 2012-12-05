@@ -275,6 +275,8 @@ namespace FriendlyCheckers
                     SaveGamePanel.Children.RemoveAt(k);
                 SaveGamePanel.Children.Add(NewGame);
                 SaveGamePanel.Children.Add(EnterGame);
+                SaveGamePanel.Children.Add(Refresh);
+                SaveGamePanel.Children.Add(FindPlayer);
                 //
 
                 int ind = 0;
@@ -838,6 +840,12 @@ namespace FriendlyCheckers
                 HighlightBox(box, false);
                 break;
             }
+        }
+        private void Find_Player_Setup(object o, RoutedEventArgs e)
+        {
+        }
+        private void Refresh_Data(object o, RoutedEventArgs e)
+        {
         }
         private void HighlightBox(SaveDataBox box, bool b)
         {
