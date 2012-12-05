@@ -210,9 +210,9 @@ namespace FriendlyCheckers
             ContentPanel.Children.Remove(Make_A_Move);
             resetBoard();
         }
-        private Boolean InGame()
+        private Boolean InLocalGame()
         {
-            return (game_state == GameState.SINGLE_PLAYER || game_state==GameState.LOCAL_MULTI || game_state==GameState.ONLINE_MULTI);
+            return (game_state == GameState.SINGLE_PLAYER || game_state==GameState.LOCAL_MULTI);
         }
         private Boolean MenuState()
         {
@@ -294,7 +294,7 @@ namespace FriendlyCheckers
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
-            if (InGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
+            if (InLocalGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
             netLogic.getSaveData(dataDude.getUserName());
             RemoveInGameStats();
             clearCredStats();
