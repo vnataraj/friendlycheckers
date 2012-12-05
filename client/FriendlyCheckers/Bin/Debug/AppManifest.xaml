@@ -2,6 +2,7 @@
   <Deployment.Parts>
     <AssemblyPart x:Name="FriendlyCheckers" Source="FriendlyCheckers.dll" />
     <AssemblyPart x:Name="Microsoft.Phone.Controls.Toolkit" Source="Microsoft.Phone.Controls.Toolkit.dll" />
+    <AssemblyPart x:Name="socketex.tcpclient" Source="socketex.tcpclient.dll" />
     <AssemblyPart x:Name="Microsoft.Phone.Controls" Source="Microsoft.Phone.Controls.dll" />
   </Deployment.Parts>
 </Deployment>

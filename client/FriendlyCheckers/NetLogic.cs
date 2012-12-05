@@ -1,4 +1,5 @@
 ﻿using System;
+using SocketEx;
 using System.Net;
 using System.IO;
 using System.Windows;
@@ -14,6 +15,8 @@ using System.Threading;
 using System.Windows.Threading;
 using System.Runtime.Serialization;
 using Microsoft.Phone.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Text;
 
 namespace FriendlyCheckers{
     public class UnknownException : System.Exception { }
@@ -27,6 +30,7 @@ namespace FriendlyCheckers{
     public class CreateUserException : System.Exception { }
     public class GetSaveDataException : System.Exception { }
     public class GetGameDataException : System.Exception { }
+    
     public class NetworkLogic
     {
 
@@ -45,11 +49,11 @@ namespace FriendlyCheckers{
         private int moveNumber;
         private int gameID;
         private int matchID;
-        private static int defaultTimeout = 60 * 1000;
 
         private string username;
         private string opponentname;
-        private string server="http://checkers.nne.net/";
+        private string server = "pod2-3.cs.purdue.edu";
+        private int port = 1200;
         private string serverpath;
         private string responseFromServer;
         private string returncode = "\0";
@@ -90,9 +94,7 @@ namespace FriendlyCheckers{
         private bool communication;
         private bool getAcceptMatchState;
         private bool createUserState;
-        private bool exists;
         private bool internetState;
-        
         public NetworkLogic(){   // constructor for NetworkLogic object, querys server for data
             this.internetState = false;
             if (NetworkInterface.GetIsNetworkAvailable())
@@ -111,12 +113,10 @@ namespace FriendlyCheckers{
             this.getSaveDataState = false;
             this.getAcceptMatchState = false;
             this.createUserState = false;
-            this.exists = false;
             saveData = new List<SaveData>();
            // this.opponentname= game.getOpponentName();
             // do startup stuff
         }
-        private static ManualResetEvent allDone = new ManualResetEvent(false);
 
         private void requestHandler(IAsyncResult result)
         {
@@ -127,21 +127,15 @@ namespace FriendlyCheckers{
             using (reader = new StreamReader(dataStream))
             {
                 responseFromServer = reader.ReadToEnd();
-                //TextBlockResults.Text = results; //-- on another thread!
                 this.checker(responseFromServer);
                 Deployment.Current.Dispatcher.BeginInvoke(() => {});
             }
             dataStream.Close();
             reader.Close();
             response.Close();
-            allDone.Set();
             return;
         }
-        private void sendHttpRequest(string serverpath)
-        {
-            request = (HttpWebRequest)WebRequest.Create(serverpath);
-            request.BeginGetResponse(new AsyncCallback(requestHandler), request);
-        }
+
         private void checker(string responseFromServer)
         {
             System.Diagnostics.Debug.WriteLine("in checker, responseFromServer is:" + responseFromServer + ":0"); 
@@ -193,8 +187,8 @@ namespace FriendlyCheckers{
             }
             else if(responseFromServer.Contains(getSaveDataSuccess))
             {
-                parseSaveData(responseFromServer);
                 this.getSaveDataState = true;
+                parseSaveData(responseFromServer);
                 return;
             }
             else if (responseFromServer.Contains(loginSuccess))
@@ -215,10 +209,6 @@ namespace FriendlyCheckers{
             }
             else if (responseFromServer.Contains(createUserFailure))
             {
-                if(responseFromServer.Contains("exists"))
-                {
-                    this.exists=true;
-                }
                 this.createUserState=false;
                 return;
             }
@@ -259,20 +249,40 @@ namespace FriendlyCheckers{
             }
             return;
         }
+        private void socketHandler(string serverpath)
+        {
+            var connection = new TcpClient(server, port);
+            var stream = connection.GetStream();
+            var reader = new StreamReader(stream);
+            var writer = new StreamWriter(stream);
+            writer.WriteLine(serverpath);
+            writer.Flush();
+
+            var fullMessage = new StringBuilder();
+
+            string message;
+            while ((message = reader.ReadLine()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(message))
+                    break;
+
+                fullMessage.AppendLine(message);
+            }
+
+            string str = fullMessage.ToString();
+            this.checker(str);
+            return;
+        }
         private void parseSaveData(string a)
         {
+            System.Diagnostics.Debug.WriteLine("here's the string response from server  :"+a+":0");
             saveData=new List<SaveData>();
             string[] lines = a.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            PieceColor p, whoseMove;
             for (int i = 1; i < lines.Length; i++)
             {
-                string[] finished = lines[i].Split(new string[] { " " }, StringSplitOptions.None);
-                if (finished[0].Equals("")) return;
-
-                p = finished[3].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
-                whoseMove = finished[4].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
-
-                saveData.Add(new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove));
+                SaveData data = SaveData.fromString(lines[i]);
+                if (data == null) continue;
+                saveData.Add(data);
             }
             return;
         }
@@ -293,13 +303,12 @@ namespace FriendlyCheckers{
             this.getGameDataState = true;
             return;
         }
-        public void checkUser(string username) //should be void
+        public bool checkUser(string username) //should be void
         {
-            
-            serverpath = server + "?message=CheckUser&" + "Username=" + username;
+            serverpath ="?message=CheckUser&" + "Username=" + username;
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             }
             catch (WebException e)
             {
@@ -307,30 +316,38 @@ namespace FriendlyCheckers{
                 CheckUserException cue = new CheckUserException();
                 throw cue;
             }
-            return;
+            if (this.checkUserExistsState)
+            {
+                return true;
+            }
+            return false;
         }
-        public void getSaveData(string username)
+        public List<SaveData> getSaveData(string username)
         {
-            serverpath = server + "?message=GetSaveData&" + "Username=" + username;
+            System.Diagnostics.Debug.WriteLine("getSaveData called!!!!!-------------"); 
+            serverpath = "?message=GetSaveData&" + "Username=" + username;
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             }
             catch (WebException we)
             {
                 System.Diagnostics.Debug.WriteLine("Caught exception : " + we.ToString());
-                GetSaveDataException gsde = new GetSaveDataException();
-                throw gsde;
+                throw new GetSaveDataException();
             }
-            return;
+            if (this.getSaveDataState)
+            {
+                return saveData;
+            }
+            return null;
         }
-        public void getGameData(string username, int matchID)
+        public GameData getGameData(string username, int matchID)
         {
             System.Diagnostics.Debug.WriteLine("entered getGameData");
-            serverpath = server + "?message=GetGameData&" + "Username=" + username + "&MatchID=" + matchID.ToString();
+            serverpath = "?message=GetGameData&" + "Username=" + username + "&MatchID=" + matchID.ToString();
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             }
             catch (WebException we)
             {
@@ -338,16 +355,21 @@ namespace FriendlyCheckers{
                 GetGameDataException ggde = new GetGameDataException();
                 throw ggde;
             }
+            if (this.getGameDataState)
+            {
+                return gameData;
+            }
+            return null;
         }
-        public void writeToServer(string username, SaveData saveData, GameData gameData)
+        public bool writeToServer(string username, SaveData saveData, GameData gameData)
         {
             System.Diagnostics.Debug.WriteLine("entered writeToServer");
             string str = gameData.ToString();
-            serverpath = server + "?message=RecordMove&" + "Username=" + username +
+            serverpath ="?message=RecordMove&" + "Username=" + username +
                 "&MatchID=" + saveData.getMatchID().ToString() + "&Notation=" + encodeGameData(gameData.toString()); // parse move!!!
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             }
             catch (WebException we)
             {
@@ -360,15 +382,19 @@ namespace FriendlyCheckers{
             {
                 Console.WriteLine("Caught exception : " + e.ToString()); // debug
             }
-            return;
+            if (this.writeState)
+            {
+                return true;
+            }
+            return false;
         }
 
-        public void login(string username, string password)// should be void
+        public bool login(string username, string password)// should be void
         {
-            serverpath=server + "?message=Login&" + "Username=" + username + "&Password=" + password;
+            serverpath="?message=Login&" + "Username=" + username + "&Password=" + password;
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             }
             catch (WebException e)
             {
@@ -376,34 +402,41 @@ namespace FriendlyCheckers{
                 LoginException le = new LoginException();
                 throw le;
             }
-            return;
+            if (this.getLoginState)
+            {
+                return true;
+            }
+            return false;
         }
         private string user;
-        public void createUser(string username, string password)
+        public bool createUser(string username, string password)
         {
             if (createUserState && user!=null && user.Equals(username))
             {
-                createUserState = false;
-                return;
+                return false;
             }
             user = username;
-            serverpath = server + "?message=CreateUser&" + "Username=" + username + "&Password=" + password;
+            serverpath = "?message=CreateUser&" + "Username=" + username + "&Password=" + password;
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             }
             catch (WebException we)
             {
                 System.Diagnostics.Debug.WriteLine("Caught exception : " + we.ToString());
             }
-            return;
+            if (this.createUserState)
+            {
+                return true;
+            }
+            return false;
         }
         public void queueMatch(string username, int gameID)
         {
-            string serverpath = server + "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
+            string serverpath = "?message=QueueMatch&" + "UserID=" + username + "&GameID="+gameID.ToString();
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             } 
             catch (WebException e)
             {
@@ -416,10 +449,10 @@ namespace FriendlyCheckers{
 
         public void requestMatch(string username, int gameID, string opponentName)
         {
-            serverpath = server + "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&Opponentname="+opponentName;
+            serverpath = "?message=RequestMatch&" + "Username=" + username + "&GameID=" + gameID.ToString() + "&Opponentname="+opponentName;
             try
             {
-                sendHttpRequest(serverpath);
+                this.socketHandler(serverpath);
             }
             catch (WebException we)
             {
@@ -509,20 +542,11 @@ namespace FriendlyCheckers{
         }
         public List<SaveData> getGetSaveData()
         {
-            if (getSaveDataState)
-            {
-                this.getSaveDataState = false;
-                return saveData;
-            }
+            this.getSaveDataState = false;
             return saveData;
         }
         public GameData getGameDataReal()
         {
-            if (getGameDataState)
-            {
-                this.getGameDataState = false;
-                return gameData;
-            }
             return gameData;
         }
     }

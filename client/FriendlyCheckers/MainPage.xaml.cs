@@ -56,10 +56,11 @@ namespace FriendlyCheckers
             checkerX = checkerY = -1;
 
             netLogic = new NetworkLogic();
+
+            System.Diagnostics.Debug.WriteLine("bool netlogic is"+netLogic.checkUser("vipul"));
+            netLogic.checkUser("joe");
             dataDude = new DataHandler();
             ResetCredsPanel();
-            if(netLogic.getInternetState())
-                netLogic.getSaveData(dataDude.getUserName());
 
             Color shade = new Color();
             shade.R = shade.G = shade.B = 0;
@@ -213,7 +214,7 @@ namespace FriendlyCheckers
             ContentPanel.Children.Remove(Make_A_Move);
             resetBoard();
         }
-        private Boolean InLocalGame()
+        private static Boolean InLocalGame()
         {
             return (game_state == GameState.SINGLE_PLAYER || game_state==GameState.LOCAL_MULTI);
         }
@@ -244,11 +245,15 @@ namespace FriendlyCheckers
         }
         private void SaveGame_Setup(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("inside saveGame_setup called."); 
             if (!netLogic.getInternetState())
             {
                 MessageBox.Show("You need to turn on data or connect to wifi to use that feature.");
                 return;
             }
+            if(!netLogic.getGetSaveDataState())
+                netLogic.getSaveData(dataDude.getUserName());
+            System.Diagnostics.Debug.WriteLine("getSaveDataCalled."); 
             game_state = GameState.SAVE_GAME;
             PageTitle.Text = "Active Games";
             RemoveInGameStats();
@@ -266,47 +271,54 @@ namespace FriendlyCheckers
             else
             {
                 LayoutRoot.Children.Add(SaveGamePanel);
-                saveButtons = new List<SaveDataBox>();
-                List<SaveData> saveData = netLogic.getGetSaveData(); 
-                if (saveData == null) return;
+                RefreshSaveDataBoxes();
+            }
+        }
+        private void RefreshSaveDataBoxes()
+        {
+            //if (!netLogic.getGetSaveDataState()) return;
+            System.Diagnostics.Debug.WriteLine("RefreshSaveDataBoxes called."); 
+            saveButtons = new List<SaveDataBox>();
+            List<SaveData> saveData = netLogic.getGetSaveData();
+            if (saveData == null) return;
+            System.Diagnostics.Debug.WriteLine("SaveGamePanel count before: " + SaveGamePanel.Children.Count);
+            //Clear old savedata
+            for (int k = SaveGamePanel.Children.Count - 1; k >= 0; k--)
+                SaveGamePanel.Children.RemoveAt(k);
+            SaveGamePanel.Children.Add(NewGame);
+            SaveGamePanel.Children.Add(EnterGame);
+            SaveGamePanel.Children.Add(Refresh);
+            SaveGamePanel.Children.Add(FindPlayer);
+            System.Diagnostics.Debug.WriteLine("SaveGamePanel count after: " + SaveGamePanel.Children.Count);
+            //
 
-                //Clear old savedata
-                for(int k=SaveGamePanel.Children.Count-1; k>=0; k--)
-                    SaveGamePanel.Children.RemoveAt(k);
-                SaveGamePanel.Children.Add(NewGame);
-                SaveGamePanel.Children.Add(EnterGame);
-                SaveGamePanel.Children.Add(Refresh);
-                SaveGamePanel.Children.Add(FindPlayer);
-                //
+            int ind = 0;
+            foreach (SaveData sd in saveData) // add enabled boxes
+            {
+                if (!sd.getPlayerColor().Equals(sd.getWhoseTurn())) continue;
 
-                int ind = 0;
-                foreach (SaveData sd in saveData) // add enabled boxes
-                {
-                    if (!sd.getPlayerColor().Equals(sd.getWhoseTurn())) continue;
+                SaveDataBox sdbox = new SaveDataBox(ind, sd);
+                saveButtons.Add(sdbox);
+                sdbox.getButton().Click += SaveDataBoxClick;
+                SaveGamePanel.Children.Add(sdbox.getButton());
+                ind++;
+            }
+            foreach (SaveData sd in saveData)// then add disabled boxes.
+            {
+                if (sd.getPlayerColor().Equals(sd.getWhoseTurn())) continue;
 
-                    SaveDataBox sdbox = new SaveDataBox(ind, sd);
-                    saveButtons.Add(sdbox);
-                    sdbox.getButton().Click += SaveDataBoxClick;
-                    SaveGamePanel.Children.Add(sdbox.getButton());
-                    ind++;
-                }
-                foreach (SaveData sd in saveData)// then add disabled boxes.
-                {
-                    if (sd.getPlayerColor().Equals(sd.getWhoseTurn())) continue;
-
-                    SaveDataBox sdbox = new SaveDataBox(ind, sd);
-                    sdbox.setEnabled(false);
-                    saveButtons.Add(sdbox);
-                    sdbox.getButton().Click += SaveDataBoxClick;
-                    SaveGamePanel.Children.Add(sdbox.getButton());
-                    ind++;
-                }
+                SaveDataBox sdbox = new SaveDataBox(ind, sd);
+                sdbox.setEnabled(false);
+                saveButtons.Add(sdbox);
+                sdbox.getButton().Click += SaveDataBoxClick;
+                SaveGamePanel.Children.Add(sdbox.getButton());
+                ind++;
             }
         }
         private void Menu_Setup(object sender, RoutedEventArgs e)
         {
             if (InLocalGame() && MessageBox.Show("The current game will end.", "Exit to main menu?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)return;
-            if (game_state == GameState.ONLINE_MULTI && netLogic.getInternetState())
+            if (game_state == GameState.ONLINE_MULTI && netLogic.getInternetState() && !netLogic.getGetSaveDataState())
                 netLogic.getSaveData(dataDude.getUserName());
             RemoveInGameStats();
             clearCredStats();
@@ -494,7 +506,8 @@ namespace FriendlyCheckers
             SaveData sd = new SaveData(old.getMatchID(), old.getOpponent(), logic.getMoveNumber(), old.getPlayerColor(), logic.whoseMove());
             GameData gd = new GameData(logic.getMoveAttemptsMade(), logic.whoseMove());
             netLogic.writeToServer(dataDude.getUserName(), sd, gd);
-
+            System.Diagnostics.Debug.WriteLine("Write to server: [MatchId](" + old.getMatchID() + ") [Opponent](" + old.getOpponent() +
+                ") [NumMoves](" + logic.getMoveNumber() + ") [PlayerColor](" + old.getPlayerColor() + ") [WhoseMove](" + logic.whoseMove() + ")");
             dataDude.setSaveData(sd);
         }
         
@@ -566,13 +579,14 @@ namespace FriendlyCheckers
 
                 TURN_TIMER.Start();
                 wait_for_timer = true;
+
+                checkerX = checkerY = -1;
             }
             catch (PieceWrongColorException) { }
             catch (PlayerMustJumpException) { MessageBox.Show("You must take an available jump!"); }
             catch (WrongMultiJumpPieceException) { MessageBox.Show("You must finish the multijump!"); }
             catch (InvalidMoveException) { }
             catch (GameLogicException) { }
-            checkerX = checkerY = -1;
         }
         private static bool canMove()
         {
@@ -668,8 +682,16 @@ namespace FriendlyCheckers
                 else
                     wait_for_computer = false;
             }
-            if(game_state == GameState.ONLINE_MULTI)
+            if (game_state == GameState.ONLINE_MULTI)
+            {
+
+               // netLogic.getSaveData(dataDude.getUserName());
+                System.Diagnostics.Debug.WriteLine("Check one!");
                 postGameStateToServer();
+                System.Diagnostics.Debug.WriteLine("Check two!");
+                if (!netLogic.getGetSaveDataState())
+                    netLogic.getSaveData(dataDude.getUserName());
+            }
         }
         private void Computer_Delay_Tick(object o, EventArgs e)
         {
@@ -778,6 +800,8 @@ namespace FriendlyCheckers
             if (success)
             {
                 dataDude.setCreds(UserName.Text, Password.Password);
+                if (!netLogic.getGetSaveDataState())
+                    netLogic.getSaveData(dataDude.getUserName());
                 ResetCredsPanel();
             }
             else
@@ -840,12 +864,16 @@ namespace FriendlyCheckers
                 HighlightBox(box, false);
                 break;
             }
+            game_state = GameState.ONLINE_MULTI;
         }
         private void Find_Player_Setup(object o, RoutedEventArgs e)
         {
         }
         private void Refresh_Data(object o, RoutedEventArgs e)
         {
+            //Menu_Setup(o, e);
+            //SaveGame_Setup(o, e);
+            RefreshSaveDataBoxes();
         }
         private void HighlightBox(SaveDataBox box, bool b)
         {

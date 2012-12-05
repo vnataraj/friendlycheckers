@@ -148,5 +148,17 @@ namespace FriendlyCheckers
         public int getNumMoves() { return numMoves; }
         public PieceColor getPlayerColor() { return myColor; }
         public PieceColor getWhoseTurn() { return whoseMove; }
+        public static SaveData fromString(String str)
+        {
+            PieceColor p, whoseMove;
+            string[] finished = str.Split(new string[] { " " }, StringSplitOptions.None);
+            if (finished[0].Equals("")) return null;
+
+            p = finished[3].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
+            whoseMove = finished[4].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
+
+           return new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove);
+
+        }
     }
 }

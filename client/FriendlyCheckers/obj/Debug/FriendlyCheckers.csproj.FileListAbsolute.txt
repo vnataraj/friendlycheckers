@@ -34,3 +34,4 @@ C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\
 C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\FriendlyCheckers.dll
 C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\FriendlyCheckers.pdb
 C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\obj\Debug\XapCacheFile.xml
+C:\Users\HP\Documents\GitHub\friendlycheckers\client\FriendlyCheckers\Bin\Debug\socketex.tcpclient.dll
