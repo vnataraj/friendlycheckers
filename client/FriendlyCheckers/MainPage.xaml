@@ -45,8 +45,6 @@
             <Button Name="multiplayer_online" Click="SaveGame_Setup" Margin="-12,556,92,6" Height="70">Multiplayer Online</Button>
             <Button Name="options"  Click="Show_Options" Margin="351,460,8,74" FontSize ="40" Height="125">+</Button>
             <Button Name="about"  Click="Show_About" Margin="351,570,8,19" FontSize ="26" Height="70">?</Button>
-            <Rectangle x:Name="Shader" Height="452" Width="440" Margin="6,9,6,198"></Rectangle>
-            <TextBlock x:Name="Search" Text="Searching for Opponents..." FontSize="32" Style="{StaticResource PhoneTextNormalStyle}" Height="56" Margin="0,206,29,397" HorizontalAlignment="Right" Width="376" />
         </Grid>
         <Grid Name ="SaveGamePanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <Button Name="NewGame" Click="FindRandomUser" Height="75" Width ="250" FontSize="25" Margin="-230,478,0,16">Find Random</Button>

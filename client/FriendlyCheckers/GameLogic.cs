@@ -28,7 +28,7 @@ namespace FriendlyCheckers {
     public class BadMoveNumberException : GameLogicException { }
     public class NoMovesLeftException : GameLogicException { }
 
-    public enum PieceColor {RED, BLACK};
+    public enum PieceColor {RED, BLACK, NONE};
     public enum PieceType {REGULAR, KING};
     public enum GameStatus {NOWINNER, REDWINS, BLACKWINS, DRAW};
 

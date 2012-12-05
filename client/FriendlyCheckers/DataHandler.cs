@@ -91,8 +91,12 @@ namespace FriendlyCheckers
             String s = "";
             if (whoseMove == PieceColor.BLACK) {
                 s += "B";
-            } else {
+            }
+            else if (whoseMove == PieceColor.RED) {
                 s += "R";
+            }
+            else {
+                s += "N";
             }
             foreach (MoveAttempt a in moves) {
                 s += a.toString();
@@ -134,31 +138,46 @@ namespace FriendlyCheckers
         private int matchID;
         private string opponent;
         private int numMoves;
-        private PieceColor myColor, whoseMove;
-        public SaveData(int matchID, string opponent, int numMoves, PieceColor myColor, PieceColor whoseMove)
+        private PieceColor myColor, whoseMove, winner;
+        public SaveData(int matchID, string opponent, int numMoves, PieceColor myColor, PieceColor whoseMove, PieceColor winner)
         {
             this.matchID = matchID;
             this.opponent = opponent;
             this.numMoves = numMoves;
             this.myColor = myColor;
             this.whoseMove = whoseMove;
+            this.winner = winner;
         }
+        public SaveData(int matchID, string opponent, int numMoves, PieceColor[] array) :
+            this(matchID, opponent, numMoves, array[0], array[1], array[2]){}
+
         public int getMatchID() { return matchID; }
         public string getOpponent() { return opponent; }
         public int getNumMoves() { return numMoves; }
         public PieceColor getPlayerColor() { return myColor; }
         public PieceColor getWhoseTurn() { return whoseMove; }
+        public PieceColor getWinner() { return winner; }
         public static SaveData fromString(String str)
         {
-            PieceColor p, whoseMove;
+            PieceColor p, whoseMove, winner;
             string[] finished = str.Split(new string[] { " " }, StringSplitOptions.None);
             if (finished[0].Equals("")) return null;
 
             p = finished[3].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
             whoseMove = finished[4].Equals("BLACK") ? PieceColor.BLACK : PieceColor.RED;
-
-           return new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove);
-
+            switch (finished[5][0])
+            {
+                case 'B':
+                    winner = PieceColor.BLACK;
+                    break;
+                case 'R':
+                    winner = PieceColor.RED;
+                    break;
+                default:
+                    winner = PieceColor.NONE;
+                    break;
+            }
+           return new SaveData(Convert.ToInt32(finished[0]), finished[1], Convert.ToInt32(finished[2]), p, whoseMove, winner);
         }
     }
 }

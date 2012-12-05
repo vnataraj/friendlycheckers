@@ -59,11 +59,6 @@ namespace FriendlyCheckers
             dataDude = new DataHandler();
             ResetCredsPanel();
 
-            Color shade = new Color();
-            shade.R = shade.G = shade.B = 0;
-            shade.A = 150;
-            Shader.Fill = new SolidColorBrush(shade);
-
             COMPUTER_DELAY = new DispatcherTimer();
             COMPUTER_DELAY.Tick += Computer_Delay_Tick;
             COMPUTER_DELAY.Interval = new TimeSpan(0, 0, 0, 0, 400);
@@ -175,8 +170,6 @@ namespace FriendlyCheckers
             ContentPanel.Children.Remove(quit);
             ContentPanel.Children.Remove(Make_A_Move);
             ContentPanel.Children.Remove(WhoseTurn);
-            ContentPanel.Children.Remove(Shader);
-            ContentPanel.Children.Remove(Search);
         }
         private void AddInGameStats()
         {
@@ -230,13 +223,9 @@ namespace FriendlyCheckers
             TURN_TIMER.Interval = new TimeSpan(0, 0, 0, 0, 0);
             ClearMenu();
             LayoutRoot.Children.Remove(TitlePanel);
-           // Versus.Text = "Player 1 vs. [Searching...]";
             AddInGameStats();
             ContentPanel.Children.Remove(quit);
             ContentPanel.Children.Remove(Make_A_Move);
-            //resetBoard();
-            //ContentPanel.Children.Add(Shader);
-            //ContentPanel.Children.Add(Search);
         }
         private void SaveGame_Setup(object sender, RoutedEventArgs e)
         {
@@ -249,6 +238,7 @@ namespace FriendlyCheckers
             System.Diagnostics.Debug.WriteLine("getSaveDataCalled."); 
             game_state = GameState.SAVE_GAME;
             PageTitle.Text = "Active Games";
+            NewGame.IsEnabled = true;
             RemoveInGameStats();
             ClearMenu();
             if(!LayoutRoot.Children.Contains(TitlePanel))
@@ -497,7 +487,7 @@ namespace FriendlyCheckers
         private void postGameStateToServer()
         {
             SaveData old = dataDude.getCurrentSaveData();
-            SaveData sd = new SaveData(old.getMatchID(), old.getOpponent(), logic.getMoveNumber(), old.getPlayerColor(), logic.whoseMove());
+            SaveData sd = new SaveData(old.getMatchID(), old.getOpponent(), logic.getMoveNumber(), old.getPlayerColor(), logic.whoseMove(), old.getWinner());
             GameData gd = new GameData(logic.getMoveAttemptsMade(), logic.whoseMove());
             netLogic.writeToServer(dataDude.getUserName(), sd, gd);
             System.Diagnostics.Debug.WriteLine("Write to server: [MatchId](" + old.getMatchID() + ") [Opponent](" + old.getOpponent() +
@@ -512,10 +502,12 @@ namespace FriendlyCheckers
         {
             Versus.Text = "Player 1 vs. [Searching...]";
             resetBoard();
-            ContentPanel.Children.Add(Shader);
-            ContentPanel.Children.Add(Search);
-            //netLogic.queueMatch(dataDude.getUserName());
-            Online_Multi_Setup(o, e);
+            netLogic.queueMatch(dataDude.getUserName());
+            SaveData dat = new SaveData(1, "Matchmaking...", 0, PieceColor.BLACK, PieceColor.BLACK, PieceColor.NONE);
+            SaveDataBox box = new SaveDataBox(SaveGamePanel.Children.Count - 2, dat);
+            box.getButton().IsEnabled = false;
+            SaveGamePanel.Children.Add(box.getButton());
+            NewGame.IsEnabled = false;
         }
         private void Find_Player_Setup(object o, RoutedEventArgs e)
         {
@@ -856,6 +848,11 @@ namespace FriendlyCheckers
             button = new Button();
             button.Content = "Moves: "+data.getNumMoves()+"          "+data.getOpponent()+"          ";
             button.HorizontalContentAlignment = HorizontalAlignment.Right;
+            if (data.getOpponent().Equals("Matchmaking..."))
+            {
+                button.Content = "Matchmaking...";
+                button.HorizontalContentAlignment = HorizontalAlignment.Center;
+            }
             button.FontSize = 30;
             button.Height = 80;
             button.Width = 450;
