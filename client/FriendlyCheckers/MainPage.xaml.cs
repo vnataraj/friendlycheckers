@@ -509,9 +509,9 @@ namespace FriendlyCheckers
                 Move m = logic.makeMove(move);
                 handleMove(m);
             }
-            if (logic.whoseMove().Equals(PieceColor.RED) && save.getPlayerColor().Equals(PieceColor.RED))
+            if (logic.whoseMove().Equals(PieceColor.RED))
             {
-                if(!rotated)
+                if (!rotated && save.getPlayerColor().Equals(PieceColor.RED))
                     rotateBoard180();
                 WhoseTurn.Text = "Red to move next.";
             }
