@@ -128,7 +128,8 @@ namespace FriendlyCheckers
         }
         private void createPieces()
         {
-            logic = new GameLogic(row_W, row_W, game_state==GameState.ONLINE_MULTI ? true : FORCE_JUMP);
+            logic = new GameLogic(row_W, row_W, (game_state==GameState.ONLINE_MULTI||
+                    game_state == GameState.SAVE_GAME) ? true : FORCE_JUMP);
             pieces = new Checker[8,8];
             int row = 0, col = 0;
             for (int k = 0; k < 24; k++)
@@ -556,7 +557,6 @@ namespace FriendlyCheckers
             {
                 if (box.getButton().Equals(sender))
                 {
-                    game_state = GameState.ONLINE_MULTI;
                     System.Diagnostics.Debug.WriteLine("A save data box was clicked!");
                     SaveData data = box.getSaveData();
                     netLogic.getGameData(dataDude.getUserName(), data.getMatchID());
