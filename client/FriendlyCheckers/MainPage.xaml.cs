@@ -465,6 +465,7 @@ namespace FriendlyCheckers
                 Login.IsEnabled = false;
                 ChangeUser.IsEnabled = true;
 
+                LoginName.Text = dataDude.getUserName();
                 LoginSuccess(true);
             }
             else
@@ -476,17 +477,6 @@ namespace FriendlyCheckers
             }
             CredPanel.Children.Add(ChangeUser);
             CredPanel.Children.Add(NewUser);
-            /*else
-            {
-                CheckAvailability.IsEnabled = true;
-                UserName.IsEnabled = true;
-                Password.IsEnabled = true;
-                Login.IsEnabled = true;
-                Login.Content = "Create Account";
-                ChangeUser.IsEnabled = false;
-                CredPanel.Children.Add(CheckAvailability);
-                CredPanel.Children.Add(AvailableRect);
-            }*/
         }
         private void postGameStateToServer()
         {
@@ -504,7 +494,10 @@ namespace FriendlyCheckers
         //////////
         private void RefreshInGame(object o, RoutedEventArgs e)
         {
-            GameData dat = netLogic.getGameData(dataDude.getUserName(), dataDude.getCurrentSaveData().getMatchID());
+            GameData dat = netLogic.getGameData(dataDude.getUserName(), dataDude.getCurrentSaveData().getMatchID())
+            SaveData old = dataDude.getCurrentSaveData();
+            SaveData save = new SaveData(old.getMatchID(),old.getOpponent(),logic.getMoveNumber(),old.getPlayerColor(),dat.getWhoseMove(),old.getWinner());
+            dataDude.setSaveData(save);
             int turn = logic.getMoveNumber();
 
             List<MoveAttempt> moves = dat.getMoves();
@@ -516,6 +509,13 @@ namespace FriendlyCheckers
                 Move m = logic.makeMove(move);
                 handleMove(m);
             }
+            if (dataDude.getCurrentSaveData().getWhoseTurn().Equals(PieceColor.RED))
+            {
+                rotateBoard180();
+                WhoseTurn.Text = "Red to move next.";
+            }
+            else
+                WhoseTurn.Text = "Black to move next.";
 
         }
         private void Refresh(object o, RoutedEventArgs e)

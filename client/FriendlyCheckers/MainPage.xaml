@@ -22,10 +22,11 @@
         </Grid.RowDefinitions>
 
         <!--TitlePanel contains the name of the application and page title-->
-        <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
+        <Grid x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
+            <TextBlock x:Name="LoginName" Text="asdasd" FontSize ="30" Style="{StaticResource PhoneTextNormalStyle}" Height="58" Width="150" Margin="300,-70,0,0"/>
             <TextBlock x:Name="ApplicationTitle" Text="CS252 Project - Team 12" Style="{StaticResource PhoneTextNormalStyle}"/>
-            <TextBlock x:Name="PageTitle" Text="Checkers" Margin="9,-15,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
-        </StackPanel>
+            <TextBlock x:Name="PageTitle" Text="Checkers" Margin="9,15,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
+        </Grid>
         <Grid Name="HiddenPanel">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="393*" />
