@@ -519,13 +519,18 @@ namespace FriendlyCheckers
             {
                 Move m = logic.makeMove(move);
                 handleMove(m);
-                //rotateBoard180();
             }
 
             Versus.Text = dataDude.getUserName() + " vs. " + data.getOpponent();
             Moves.Text = "Moves: " + data.getNumMoves();
-            if(data.getWhoseTurn().Equals(PieceColor.RED))
+            if (data.getWhoseTurn().Equals(PieceColor.RED))
+            {
                 rotateBoard180();
+                WhoseTurn.Text = "Red to move next.";
+            }
+            else
+                WhoseTurn.Text = "Black to move next.";
+
             System.Diagnostics.Debug.WriteLine("-----------------------------------------");
         }
         public static void MakeMove(int boardX, int boardY)
