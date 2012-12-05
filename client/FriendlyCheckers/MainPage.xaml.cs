@@ -556,6 +556,7 @@ namespace FriendlyCheckers
             {
                 if (box.getButton().Equals(sender))
                 {
+                    game_state = GameState.ONLINE_MULTI;
                     System.Diagnostics.Debug.WriteLine("A save data box was clicked!");
                     SaveData data = box.getSaveData();
                     netLogic.getGameData(dataDude.getUserName(), data.getMatchID());
