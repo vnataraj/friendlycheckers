@@ -63,6 +63,7 @@ public class CheckersServer {
 			e.printStackTrace();
 		}
 		finally {
+			System.out.println("Responding with: " + response);
 			n.println(response);
 			n.close();
 		}
@@ -120,6 +121,8 @@ public class CheckersServer {
 	}
 	
 	private String extractMessage(String in) {
+		if(in == null) 
+			return "";
 		if(in.indexOf("&") > 0)
 			return in.substring(9, in.indexOf("&"));
 		else
@@ -152,6 +155,7 @@ public class CheckersServer {
 		if(! varExists(vA, k) ) return true;
 		return "".equals(var(vA, k));
 	}
+	
 	
 	public static void main(String[] args) {
 		for(String s : args) {
