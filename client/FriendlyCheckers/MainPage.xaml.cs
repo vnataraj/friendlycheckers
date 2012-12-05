@@ -508,7 +508,7 @@ namespace FriendlyCheckers
             int turn = logic.getMoveNumber();
 
             List<MoveAttempt> moves = dat.getMoves();
-            for (int k = turn; k < moves.Count; k++ )
+            for (int k = turn; k < moves.Count-1; k++ )
             {
                 MoveAttempt move = moves[k];
                 Move m = logic.makeMove(move);

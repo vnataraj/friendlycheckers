@@ -45,7 +45,7 @@
             <Button Name="multiplayer_online" Click="SaveGame_Setup" Margin="-12,556,92,6" Height="70">Multiplayer Online</Button>
             <Button Name="options"  Click="Show_Options" Margin="351,460,8,74" FontSize ="40" Height="125">+</Button>
             <Button Name="about"  Click="Show_About" Margin="351,570,8,19" FontSize ="26" Height="70">?</Button>
-            <Button Name="RefreshInGameButton" Click="RefreshInGame" Height="70" Width ="450" Margin="0,450,0,0" FontSize="25" >Refresh</Button>
+            <Button Name="RefreshInGameButton" Click="RefreshInGame" Height="70" Width ="450" Margin="0,445,0,0" FontSize="25" >Refresh</Button>
         </Grid>
         <Grid Name ="SaveGamePanel" Margin="0,139,0,74" Grid.RowSpan="2">
             <Button Name="NewGame" Click="FindRandomUser" Height="75" Width ="250" FontSize="25" Margin="-230,478,0,16">Find Random</Button>
