@@ -511,6 +511,7 @@ namespace FriendlyCheckers
             System.Diagnostics.Debug.WriteLine("~~~~~TURN: " + turn + " COUNT: " + moves.Count);
             for (int k = turn; k < moves.Count; k++ )
             {
+                System.Diagnostics.Debug.WriteLine("MOVES ARE BEING MADE.");
                 MoveAttempt move = moves[k];
                 Move m = logic.makeMove(move);
                 handleMove(m);
