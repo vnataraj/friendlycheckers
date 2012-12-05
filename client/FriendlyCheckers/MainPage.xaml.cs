@@ -509,7 +509,7 @@ namespace FriendlyCheckers
                 Move m = logic.makeMove(move);
                 handleMove(m);
             }
-            if (dataDude.getCurrentSaveData().getWhoseTurn().Equals(PieceColor.RED))
+            if (logic.whoseMove().Equals(PieceColor.RED))
             {
                 rotateBoard180();
                 WhoseTurn.Text = "Red to move next.";
